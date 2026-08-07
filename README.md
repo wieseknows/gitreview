@@ -15,7 +15,7 @@ CLI tool that converts `git diff` into a structured LLM code review prompt or ex
 ```bash
 git clone [https://github.com/your-username/GitReview.git](https://github.com/your-username/GitReview.git)
 cd GitReview
-dotnet build -c Release```
+dotnet build -c Release
 
 ### 2. Configure Git Alias
 Set the environment variable in your shell profile (`~/.bashrc`):
