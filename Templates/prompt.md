@@ -132,10 +132,10 @@
 **Предлагаемое исправление:**
 *(ОБЯЗАТЕЛЬНО предоставь готовый искусно переписанный фрагмент кода с короткими однострочными английскими комментариями)*
 
-```csharp / ts
+```csharp
 // English single-line comment explaining the fix
-var result = await FetchDataAsync(cancellationToken);```
-
+var result = await FetchDataAsync(cancellationToken);
+```
 
 Если проблем нет, напиши:
 
