@@ -53,12 +53,12 @@ internal sealed class AiReviewOutputStrategy : IOutputStrategy
         }
         catch (InvalidOperationException ex)
         {
-            Console.WriteLine($"⚠️  {ex.Message}");
+            Console.WriteLine($"⚠️ {ex.Message}");
             Console.WriteLine("🔑 Gemini key: https://aistudio.google.com/app/apikey");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            Console.WriteLine("⚠️  Cancelled.");
+            Console.WriteLine("⚠️ Cancelled.");
         }
         catch (TaskCanceledException)
         {
