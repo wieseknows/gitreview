@@ -11,9 +11,11 @@
 		<Version>1.0.0</Version>
 		<Authors>wieseknows</Authors>
 		<Description>CLI tool to convert git diffs into structured LLM prompts.</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Update="Templates\prompt.md">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
