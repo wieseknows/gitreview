@@ -14,7 +14,7 @@ var services = new ServiceCollection();
 services.AddSingleton<IGitService, GitService>();
 services.AddSingleton<IPromptBuilder, PromptBuilder>();
 
-services.AddLlmReviewService();
+services.AddLlmReviewService(options.Provider);
 
 services.AddTransient<IOutputStrategy, PromptOutputStrategy>();
 services.AddTransient<IOutputStrategy, RawDiffOutputStrategy>();

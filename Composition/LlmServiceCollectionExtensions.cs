@@ -9,17 +9,14 @@ internal static class LlmServiceCollectionExtensions
 {
     private static readonly int LlmTimeoutInMinutes = 3;
 
-    public static IServiceCollection AddLlmReviewService(this IServiceCollection services)
+    public static IServiceCollection AddLlmReviewService(this IServiceCollection services, string provider)
     {
-        var provider = Environment.GetEnvironmentVariable("GIT_REVIEW_PROVIDER")
-            ?? "gemini";
-
         return provider.ToLowerInvariant() switch
         {
             "gemini" => services.AddGeminiLlm(),
             "deepseek" => services.AddDeepSeekLlm(),
             _ => throw new InvalidOperationException(
-                $"Unknown GIT_REVIEW_PROVIDER '{provider}'. Supported: gemini, deepseek")
+                $"Unknown LLM provider '{provider}'. Supported providers: gemini, deepseek")
         };
     }
 
