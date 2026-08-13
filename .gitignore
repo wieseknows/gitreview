@@ -60,3 +60,8 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 .DS_Store
+
+# ==========================================
+# Launch profiles (local paths, API keys)
+# ==========================================
+**/Properties/launchSettings.json
