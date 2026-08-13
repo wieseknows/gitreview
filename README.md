@@ -4,42 +4,37 @@ CLI tool that converts `git diff` into a structured LLM code review prompt or ex
 
 ## Features
 
-- **Prompt Generator:** Creates `review.md` with git metrics and copies it to clipboard.
-- **Raw Patch Mode:** Exports clean `.diff` without LLM prompt formatting.
-- **Auto Focus:** Opens Windows Explorer with the output file pre-selected.
+- ⚡ **Prompt Generator:** Creates `review.md` with git metrics and copies it to clipboard.
+- 📝 **Raw Patch Mode:** Exports clean `.diff` without LLM prompt formatting.
+- 📂 **Auto Focus:** Opens Windows Explorer with the output file pre-selected.
+- 🏗 **Zero Config:** Works out of the box as a native Git subcommand via .NET Global Tool.
 
-## Quick Start
+## Installation
 
-### 1. Build
-
-```bash
-git clone [https://github.com/wieseknows/GitReview.git](https://github.com/wieseknows/GitReview.git)
-cd GitReview
-dotnet build -c Release
-```
-
-### 2. Configure Git Alias
-
-Set the environment variable in your shell profile (`~/.bashrc` / `~/.zshrc`):
+Install globally via .NET SDK:
 
 ```bash
-export GIT_REVIEW="/path/to/GitReview"
+dotnet tool install -g wieseknows.GitReview
 ```
 
-Add aliases to `~/.gitconfig`:
+To update to the latest version:
 
-```ini
-[alias]
-    review = "!f(){ \"$GIT_REVIEW/bin/Release/net10.0/GitReview.exe\" \"$@\"; }; f"
-    review-raw = review raw
+```bash
+dotnet tool update -g wieseknows.GitReview
+```
+
+To uninstall:
+
+```bash
+dotnet tool uninstall -g wieseknows.GitReview
 ```
 
 ## Usage
 
-Run from any Git repository:
+Run directly from any Git repository:
 
 - **Generate LLM Prompt:** `git review`
-- **Export Raw Diff:** `git review-raw` (or `git review raw`)
+- **Export Raw Diff:** `git review raw` (or `git-review raw`)
 
 ## Output
 
