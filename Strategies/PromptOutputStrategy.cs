@@ -2,11 +2,10 @@
 using GitReview.Helpers;
 using GitReview.Models;
 using GitReview.Prompt;
-using TextCopy;
 
 namespace GitReview.Strategies;
 
-public class PromptOutputStrategy : IOutputStrategy
+internal sealed class PromptOutputStrategy : IOutputStrategy
 {
     private readonly IPromptBuilder _promptBuilder;
     private readonly IGitService _gitService;
@@ -21,30 +20,17 @@ public class PromptOutputStrategy : IOutputStrategy
         _gitService = gitService;
     }
 
-    public async Task ProcessAsync(GitDiffResult diff)
+    public async Task ProcessAsync(GitDiffResult diff, CancellationToken cancellationToken = default)
     {
-        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), FileName);
-
         var prompt = _promptBuilder.Build(
             diff,
             _gitService.GetRepositoryRoot(),
             _gitService.GetCurrentBranch());
 
-        try
-        {
-            await File.WriteAllTextAsync(fullPath, prompt);
-            await ClipboardService.SetTextAsync(prompt);
-
-            Console.WriteLine("✅ Prompt copied to clipboard");
-            Console.WriteLine($"✅ Prompt saved to: {fullPath}");
-
-            FileExplorerHelper.OpenAndSelectFile(fullPath);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Console.WriteLine($"❌ Failed to write prompt file: {ex.Message}");
-            await ClipboardService.SetTextAsync(prompt);
-            Console.WriteLine("✅ Prompt copied to clipboard (file write failed)");
-        }
+        await ReviewOutputHelper.SaveClipboardAndRevealAsync(
+            content: prompt,
+            fileName: FileName,
+            successLabel: "Prompt",
+            cancellationToken: cancellationToken);
     }
 }

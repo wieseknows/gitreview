@@ -1,6 +1,6 @@
 ﻿namespace GitReview.Models;
 
-public class GitDiffResult
+public sealed class GitDiffResult
 {
     public string StagedDiff { get; init; } = string.Empty;
     public string WorkingTreeDiff { get; init; } = string.Empty;

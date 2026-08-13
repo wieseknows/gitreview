@@ -2,7 +2,7 @@
 
 namespace GitReview.Prompt;
 
-public class PromptBuilder : IPromptBuilder
+internal sealed class PromptBuilder : IPromptBuilder
 {
     private readonly string _templatePath;
 

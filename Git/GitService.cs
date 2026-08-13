@@ -4,7 +4,7 @@ using System.Text;
 
 namespace GitReview.Git;
 
-public class GitService : IGitService
+internal sealed class GitService : IGitService
 {
     private const int TimeoutMs = 30_000;
 

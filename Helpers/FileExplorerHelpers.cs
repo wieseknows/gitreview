@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace GitReview.Helpers;
 
-public static class FileExplorerHelper
+internal static class FileExplorerHelper
 {
     public static void OpenAndSelectFile(string filePath)
     {

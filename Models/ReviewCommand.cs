@@ -1,20 +1,28 @@
 ﻿using GitReview.Git;
-using GitReview.Strategies;
 
 namespace GitReview.Models;
 
-public class ReviewCommand
+internal sealed class ReviewCommand
 {
     private readonly IGitService _gitService;
-    private readonly IEnumerable<IOutputStrategy> _strategies;
+    private readonly IReadOnlyDictionary<OutputMode, IOutputStrategy> _strategies;
 
     public ReviewCommand(IGitService gitService, IEnumerable<IOutputStrategy> strategies)
     {
         _gitService = gitService;
-        _strategies = strategies;
+        try
+        {
+            _strategies = strategies.ToDictionary(s => s.Mode);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new InvalidOperationException(
+                $"Duplicate {nameof(IOutputStrategy)}.{nameof(IOutputStrategy.Mode)} registration. Each OutputMode must map to exactly one strategy.",
+                ex);
+        }
     }
 
-    public async Task ExecuteAsync(ReviewOptions options)
+    public async Task ExecuteAsync(ReviewOptions options, CancellationToken cancellationToken)
     {
         if (!_gitService.IsGitRepository())
         {
@@ -33,13 +41,12 @@ public class ReviewCommand
             return;
         }
 
-        var strategy = _strategies.FirstOrDefault(s => s.Mode == options.Mode);
-        if (strategy == null)
+        if (!_strategies.TryGetValue(options.Mode, out var strategy))
         {
             Console.WriteLine($"❌ No strategy found for mode: {options.Mode}");
             return;
         }
 
-        await strategy.ProcessAsync(diff);
+        await strategy.ProcessAsync(diff, cancellationToken);
     }
 }

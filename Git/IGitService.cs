@@ -2,7 +2,7 @@
 
 namespace GitReview.Git;
 
-public interface IGitService
+internal interface IGitService
 {
     GitDiffResult GetDiff();
     string GetRepositoryRoot();
