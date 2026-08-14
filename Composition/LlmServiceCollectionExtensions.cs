@@ -1,6 +1,7 @@
 ﻿using GitReview.Services;
 using GitReview.Services.DeepSeek;
 using GitReview.Services.Gemini;
+using GitReview.Services.OpenRouter;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GitReview.Composition;
@@ -13,14 +14,15 @@ internal static class LlmServiceCollectionExtensions
     {
         return provider.ToLowerInvariant() switch
         {
-            "gemini" => services.AddGeminiLlm(),
-            "deepseek" => services.AddDeepSeekLlm(),
+            "gemini" => services.AddGemini(),
+            "deepseek" => services.AddDeepSeek(),
+            "openrouter" => services.AddOpenRouter(),
             _ => throw new InvalidOperationException(
-                $"Unknown LLM provider '{provider}'. Supported providers: gemini, deepseek")
+                $"Unknown LLM provider '{provider}'. Supported providers: gemini, deepseek, openrouter")
         };
     }
 
-    private static IServiceCollection AddGeminiLlm(this IServiceCollection services)
+    private static IServiceCollection AddGemini(this IServiceCollection services)
     {
         services.AddHttpClient<ILlmReviewService, GeminiService>(client =>
         {
@@ -29,9 +31,18 @@ internal static class LlmServiceCollectionExtensions
         return services;
     }
 
-    private static IServiceCollection AddDeepSeekLlm(this IServiceCollection services)
+    private static IServiceCollection AddDeepSeek(this IServiceCollection services)
     {
         services.AddHttpClient<ILlmReviewService, DeepSeekService>(client =>
+        {
+            client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
+        });
+        return services;
+    }
+
+    private static IServiceCollection AddOpenRouter(this IServiceCollection services)
+    {
+        services.AddHttpClient<ILlmReviewService, OpenRouterService>(client =>
         {
             client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
         });

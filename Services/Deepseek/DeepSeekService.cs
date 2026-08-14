@@ -12,7 +12,6 @@ internal sealed class DeepSeekService : ILlmReviewService
     public DeepSeekService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri(DeepSeekOptions.BaseUrl);
     }
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
@@ -27,7 +26,7 @@ internal sealed class DeepSeekService : ILlmReviewService
 
         Console.WriteLine($"📡 Model: {DeepSeekOptions.Model} (DeepSeek)");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "chat/completions");
+        using var request = new HttpRequestMessage(HttpMethod.Post, DeepSeekOptions.Endpoint);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
         var requestBody = new DeepSeekRequest(

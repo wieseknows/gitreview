@@ -1,10 +1,10 @@
 # GitReview
 
-CLI tool that converts `git diff` into a structured LLM code review prompt, exports raw diff patches, or directly performs automated AI code reviews via Gemini or DeepSeek API. Automatically copies prompts/results to the clipboard and opens your file explorer with the generated file selected.
+CLI tool that converts `git diff` into a structured LLM code review prompt, exports raw diff patches, or directly performs automated AI code reviews via Gemini, DeepSeek, or OpenRouter API. Automatically copies prompts/results to the clipboard and opens your file explorer with the generated file selected.
 
 ## Features
 
-- 🤖 **Automated AI Review:** Sends diffs directly to LLM APIs (Google Gemini or DeepSeek) and renders code review results without manual copy-pasting.
+- 🤖 **Automated AI Review:** Sends diffs directly to LLM APIs (Google Gemini, DeepSeek, or OpenRouter) and renders code review results without manual copy-pasting.
 - ⚡ **Prompt Generator:** Creates `review.md` with git metrics and copies it to clipboard for ChatGPT / Claude / Web interfaces.
 - 📝 **Raw Patch Mode:** Exports clean `.diff` patch files without LLM prompt formatting.
 - 📂 **Auto Focus:** Opens Windows Explorer / macOS Finder with the output file pre-selected.
@@ -41,6 +41,15 @@ Obtain a free API key from [Google AI Studio](https://aistudio.google.com/app/ap
 - **PowerShell:** `$env:GEMINI_API_KEY="your_api_key_here"`
 - **Windows CMD:** `set GEMINI_API_KEY=your_api_key_here`
 
+### OpenRouter (Free Tier Available)
+Obtain a free API key from [OpenRouter Keys](https://openrouter.ai/keys).
+
+- **Bash / Zsh:** `export OPENROUTER_API_KEY="your_api_key_here"`
+- **PowerShell:** `$env:OPENROUTER_API_KEY="your_api_key_here"`
+- **Windows CMD:** `set OPENROUTER_API_KEY=your_api_key_here`
+
+*(Optional)* Change default model (e.g. `poolside/laguna-s-2.1:free`): `export OPENROUTER_MODEL="poolside/laguna-s-2.1:free"`
+
 ### DeepSeek
 Obtain an API key from [DeepSeek Platform](https://platform.deepseek.com/).
 
@@ -48,7 +57,7 @@ Obtain an API key from [DeepSeek Platform](https://platform.deepseek.com/).
 - **PowerShell:** `$env:DEEPSEEK_API_KEY="your_api_key_here"`
 - **Windows CMD:** `set DEEPSEEK_API_KEY=your_api_key_here`
 
-*(Optional)* Set `GIT_REVIEW_PROVIDER="deepseek"` if you want DeepSeek to be your default provider without passing CLI flags.
+*(Optional)* Set `GIT_REVIEW_PROVIDER="openrouter"` or `"deepseek"` if you want to override the default provider globally.
 
 ## Usage
 
@@ -56,6 +65,7 @@ Run directly from any Git repository:
 
 ### Automated AI Review
 - `git review --ai` — Run AI review using default provider (Gemini).
+- `git review --ai -p openrouter` (or `git review --openrouter`) — Run AI review using OpenRouter (Free models).
 - `git review --ai -p deepseek` (or `git review --deepseek`) — Run AI review using DeepSeek.
 - `git review --ai -p gemini` (or `git review --gemini`) — Run AI review using Gemini explicitly.
 

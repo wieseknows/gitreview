@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "GitReview (ai)": {
+      "commandName": "Project",
+      "commandLineArgs": "--ai",
+      "workingDirectory": "C:\\dev\\projects\\pinergy\\web",
+      "environmentVariables": {
+        "GIT_REVIEW_PROVIDER": "openrouter",
+
+        "GEMINI_API_KEY": "",
+        "GEMINI_MODEL": "gemini-3.6-flash",
+        "DEEPSEEK_API_KEY": "",
+        "DEEPSEEK_MODEL": "deepseek-coder",
+        "OPENROUTER_API_KEY": "",
+        "OPENROUTER_MODEL": "poolside/laguna-s-2.1:free"
+      }
+    },
+    "GitReview (prompt)": {
+      "commandName": "Project",
+      "commandLineArgs": "",
+      "workingDirectory": "C:\\dev\\projects\\pinergy\\web"
+    }
+  }
+}

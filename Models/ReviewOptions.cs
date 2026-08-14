@@ -50,6 +50,11 @@ internal sealed class ReviewOptions
             mode = OutputMode.AiReview;
             provider ??= "gemini";
         }
+        else if (Has(args, "openrouter", "--openrouter", "-or"))
+        {
+            mode = OutputMode.AiReview;
+            provider ??= "openrouter";
+        }
         else if (Has(args, "ai", "--ai"))
         {
             mode = OutputMode.AiReview;
