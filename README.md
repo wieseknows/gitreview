@@ -34,7 +34,7 @@ dotnet tool uninstall -g wieseknows.GitReview
 
 Set the API key for your preferred provider as an environment variable:
 
-### OpenRouter (Default, Free Tier Available)
+### OpenRouter (Default + Free Tier Available)
 Obtain a free API key from [OpenRouter Keys](https://openrouter.ai/keys).
 
 - **Bash / Zsh:** `export OPENROUTER_API_KEY="your_api_key_here"`
@@ -64,7 +64,7 @@ Obtain an API key from [DeepSeek Platform](https://platform.deepseek.com/).
 Run directly from any Git repository:
 
 ### Automated AI Review
-- `git review --ai` — Run AI review using default provider (Gemini).
+- `git review --ai` — Run AI review using default provider (OpenRouter).
 - `git review --ai -p openrouter` (or `git review --openrouter`) — Run AI review using OpenRouter (Free models).
 - `git review --ai -p deepseek` (or `git review --deepseek`) — Run AI review using DeepSeek.
 - `git review --ai -p gemini` (or `git review --gemini`) — Run AI review using Gemini explicitly.
