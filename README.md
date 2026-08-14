@@ -64,7 +64,7 @@ Obtain an API key from [DeepSeek Platform](https://platform.deepseek.com/).
 Run directly from any Git repository:
 
 ### Automated AI Review
-- `git review --ai` — Run AI review using default provider (Gemini).
+- `git review --ai` — Run AI review using default provider (OpenRouter).
 - `git review --ai -p openrouter` (or `git review --openrouter`) — Run AI review using OpenRouter (Free models).
 - `git review --ai -p deepseek` (or `git review --deepseek`) — Run AI review using DeepSeek.
 - `git review --ai -p gemini` (or `git review --gemini`) — Run AI review using Gemini explicitly.
