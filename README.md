@@ -34,14 +34,7 @@ dotnet tool uninstall -g wieseknows.GitReview
 
 Set the API key for your preferred provider as an environment variable:
 
-### Google Gemini (Default)
-Obtain a free API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
-
-- **Bash / Zsh:** `export GEMINI_API_KEY="your_api_key_here"`
-- **PowerShell:** `$env:GEMINI_API_KEY="your_api_key_here"`
-- **Windows CMD:** `set GEMINI_API_KEY=your_api_key_here`
-
-### OpenRouter (Free Tier Available)
+### OpenRouter (Default + Free Tier Available)
 Obtain a free API key from [OpenRouter Keys](https://openrouter.ai/keys).
 
 - **Bash / Zsh:** `export OPENROUTER_API_KEY="your_api_key_here"`
@@ -49,6 +42,13 @@ Obtain a free API key from [OpenRouter Keys](https://openrouter.ai/keys).
 - **Windows CMD:** `set OPENROUTER_API_KEY=your_api_key_here`
 
 *(Optional)* Change default model (e.g. `poolside/laguna-s-2.1:free`): `export OPENROUTER_MODEL="poolside/laguna-s-2.1:free"`
+
+### Google Gemini
+Obtain a free API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+- **Bash / Zsh:** `export GEMINI_API_KEY="your_api_key_here"`
+- **PowerShell:** `$env:GEMINI_API_KEY="your_api_key_here"`
+- **Windows CMD:** `set GEMINI_API_KEY=your_api_key_here`
 
 ### DeepSeek
 Obtain an API key from [DeepSeek Platform](https://platform.deepseek.com/).

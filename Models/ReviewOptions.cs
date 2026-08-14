@@ -9,10 +9,10 @@ internal enum OutputMode
 
 internal sealed class ReviewOptions
 {
-    private const string DefaultLlmProvider = "gemini";
+    private const string DefaultLlmProvider = "openrouter";
 
     public OutputMode Mode { get; init; } = OutputMode.PromptWithClipboard;
-    public string Provider { get; init; } = "gemini";
+    public string Provider { get; init; } = DefaultLlmProvider;
 
     public static ReviewOptions Parse(string[] args)
     {
