@@ -1,3 +1,9 @@
 <Solution>
-  <Project Path="GitReview.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/GitReview.Cli/GitReview.Cli.csproj" />
+    <Project Path="src/GitReview.Core/GitReview.Core.csproj" Id="d1be6a11-beb3-441e-9416-b1e174b0316c" />
+  </Folder>
 </Solution>
