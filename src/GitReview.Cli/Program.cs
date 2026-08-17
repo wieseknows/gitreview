@@ -1,4 +1,5 @@
 ﻿using GitReview.Cli.Composition;
+using GitReview.Cli.Parsing;
 using GitReview.Core.Git;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 Console.WriteLine("GitReview started\n");
 
-var options = ReviewOptions.Parse(args);
+var options = ReviewOptionsParser.Parse(args);
 
 var services = new ServiceCollection();
 

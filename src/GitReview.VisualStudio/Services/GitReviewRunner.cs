@@ -1,4 +1,5 @@
-﻿using GitReview.Shared.Constants;
+﻿using GitReview.Shared.Enums;
+using GitReview.Shared.Providers;
 using GitReview.VisualStudio.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -79,18 +80,18 @@ namespace GitReview.VisualStudio.Services
                 return;
             }
 
-            if (!string.IsNullOrWhiteSpace(options.OpenRouterApiKey))
+            foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
-                psi.EnvironmentVariables[EnvVariables.OpenRouterApiKey] = options.OpenRouterApiKey;
-            }
-            if (!string.IsNullOrWhiteSpace(options.GeminiApiKey))
-            {
-                psi.EnvironmentVariables[EnvVariables.GeminiApiKey] = options.GeminiApiKey;
-            }
+                var apiKey = options.GetApiKey(provider);
 
-            if (!string.IsNullOrWhiteSpace(options.DeepSeekApiKey))
-            {
-                psi.EnvironmentVariables[EnvVariables.DeepSeekApiKey] = options.DeepSeekApiKey;
+                // Preserve inherited environment variables when no key is configured.
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    continue;
+                }
+
+                var envVar = provider.GetApiKeyEnvVar();
+                psi.EnvironmentVariables[envVar] = apiKey;
             }
         }
 

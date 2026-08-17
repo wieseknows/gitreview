@@ -1,17 +1,19 @@
-﻿namespace GitReview.Core.Options;
+﻿using GitReview.Shared.Enums;
+using GitReview.Shared.Providers;
+
+namespace GitReview.Core.Options;
 
 public static class GeminiOptions
 {
-    public const string ApiKeyEnvironmentVariable = "GEMINI_API_KEY";
-    public const string ModelEnvironmentVariable = "GEMINI_MODEL";
-    public const string DefaultModel = "gemini-3.6-flash";
+    public static readonly string ApiKeyEnvironmentVariable = AiProvider.Gemini.GetApiKeyEnvVar();
+    public static readonly string ModelEnvironmentVariable = AiProvider.Gemini.GetModelEnvVar();
     public const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta";
 
     public static string Model =>
         Environment.GetEnvironmentVariable(ModelEnvironmentVariable) is { Length: > 0 } m
             ? m
-            : DefaultModel;
+            : AiProvider.Gemini.GetDefaultModel();
 
     public static string GetGenerateContentUrl(string? model = null)
-     => $"{BaseUrl}/models/{model ?? Model}:generateContent";
+        => $"{BaseUrl}/models/{model ?? Model}:generateContent";
 }

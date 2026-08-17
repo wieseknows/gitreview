@@ -2,6 +2,7 @@
 using GitReview.Core.Helpers;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
+using GitReview.Shared.Enums;
 
 namespace GitReview.Core.Strategies;
 
@@ -10,7 +11,7 @@ public sealed class PromptOutputStrategy : IOutputStrategy
     private readonly IPromptBuilder _promptBuilder;
     private readonly IGitService _gitService;
 
-    public OutputMode Mode => OutputMode.PromptWithClipboard;
+    public ReviewExecutionMode Mode => ReviewExecutionMode.PromptWithClipboard;
 
     private const string FileName = "review.md";
 

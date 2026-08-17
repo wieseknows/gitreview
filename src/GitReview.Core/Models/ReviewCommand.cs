@@ -1,11 +1,12 @@
 ﻿using GitReview.Core.Git;
+using GitReview.Shared.Enums;
 
 namespace GitReview.Core.Models;
 
 public sealed class ReviewCommand
 {
     private readonly IGitService _gitService;
-    private readonly IReadOnlyDictionary<OutputMode, IOutputStrategy> _strategies;
+    private readonly IReadOnlyDictionary<ReviewExecutionMode, IOutputStrategy> _strategies;
 
     public ReviewCommand(IGitService gitService, IEnumerable<IOutputStrategy> strategies)
     {

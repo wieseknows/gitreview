@@ -1,5 +1,7 @@
 ﻿using GitReview.Shared.Constants;
+using GitReview.Shared.Enums;
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel;
 
 namespace GitReview.VisualStudio.Options
@@ -8,7 +10,7 @@ namespace GitReview.VisualStudio.Options
     public class GitReviewOptionPage : DialogPage
     {
         [Category("API Keys")]
-        [DisplayName("OpenRouter API Key")]
+        [DisplayName($"OpenRouter API Key")]
         [Description($"Set {EnvVariables.OpenRouterApiKey} for OpenRouter requests.")]
         public string OpenRouterApiKey { get; set; } = string.Empty;
 
@@ -21,5 +23,13 @@ namespace GitReview.VisualStudio.Options
         [DisplayName("DeepSeek API Key")]
         [Description($"Set {EnvVariables.DeepSeekApiKey} for DeepSeek requests.")]
         public string DeepSeekApiKey { get; set; } = string.Empty;
+
+        public string GetApiKey(AiProvider provider) => provider switch
+        {
+            AiProvider.Gemini => GeminiApiKey,
+            AiProvider.DeepSeek => DeepSeekApiKey,
+            AiProvider.OpenRouter => OpenRouterApiKey,
+            _ => throw new ArgumentOutOfRangeException(nameof(AiProvider), provider.ToString()),
+        };
     }
 }

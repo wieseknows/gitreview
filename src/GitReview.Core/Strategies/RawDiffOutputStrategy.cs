@@ -1,11 +1,12 @@
 ﻿using GitReview.Core.Helpers;
 using GitReview.Core.Models;
+using GitReview.Shared.Enums;
 
 namespace GitReview.Core.Strategies;
 
 public sealed class RawDiffOutputStrategy : IOutputStrategy
 {
-    public OutputMode Mode => OutputMode.RawDiffOnly;
+    public ReviewExecutionMode Mode => ReviewExecutionMode.RawDiffOnly;
 
     private const string FileName = "git_changes.diff";
 

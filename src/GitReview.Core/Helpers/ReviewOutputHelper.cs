@@ -2,7 +2,7 @@
 
 namespace GitReview.Core.Helpers;
 
-public static class ReviewOutputHelper
+internal static class ReviewOutputHelper
 {
     public static async Task SaveClipboardAndRevealAsync(
         string content,

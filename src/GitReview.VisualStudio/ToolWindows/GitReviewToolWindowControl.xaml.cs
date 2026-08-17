@@ -1,6 +1,6 @@
-﻿using GitReview.Shared.Constants;
-using GitReview.Shared.Enums;
+﻿using GitReview.Shared.Enums;
 using GitReview.Shared.Extensions;
+using GitReview.Shared.Providers;
 using GitReview.VisualStudio.Models;
 using GitReview.VisualStudio.Options;
 using GitReview.VisualStudio.Services;
@@ -55,11 +55,6 @@ namespace GitReview.VisualStudio.ToolWindows
 
         private void ModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (AiConfigurationPanel == null)
-            {
-                return;
-            }
-
             AiConfigurationPanel.Visibility = SelectedMode == ReviewExecutionMode.AiReview
                 ? Visibility.Visible
                 : Visibility.Collapsed;
@@ -72,26 +67,9 @@ namespace GitReview.VisualStudio.ToolWindows
 
         private void UpdateModelsForSelectedProvider()
         {
-            if (ModelComboBox == null || ProviderComboBox == null)
-            {
-                return;
-            }
-
-            var provider = GetSelectedProviderId();
-            if (SharedConstants.ModelsByProvider.TryGetValue(provider, out var models))
-            {
-                ModelComboBox.ItemsSource = models;
-                ModelComboBox.SelectedIndex = 0;
-            }
+            ModelComboBox.ItemsSource = SelectedProvider.GetAvailableModels();
+            ModelComboBox.SelectedIndex = 0;
         }
-
-        private string GetSelectedProviderId() => SelectedProvider switch
-        {
-            AiProvider.Gemini => "gemini",
-            AiProvider.DeepSeek => "deepseek",
-            AiProvider.OpenRouter => "openrouter",
-            _ => "openrouter"
-        };
 
         private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -162,11 +140,11 @@ namespace GitReview.VisualStudio.ToolWindows
 
         private string BuildCliArgs()
         {
-            return ModeComboBox.SelectedIndex switch
+            return SelectedMode switch
             {
-                1 => "--prompt-only",
-                2 => "raw",
-                _ => $"--ai -p {GetSelectedProviderId()} -m \"{ModelComboBox.Text}\""
+                ReviewExecutionMode.PromptWithClipboard => "--prompt-only",
+                ReviewExecutionMode.RawDiffOnly => "raw",
+                _ => $"--ai -p {SelectedProvider.ToCliValue()} -m \"{ModelComboBox.Text}\""
             };
         }
 
