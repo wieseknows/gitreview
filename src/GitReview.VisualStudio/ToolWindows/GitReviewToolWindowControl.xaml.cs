@@ -1,4 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using GitReview.VisualStudio.Options;
+using GitReview.VisualStudio.Services;
+using Microsoft.VisualStudio.Shell;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -6,114 +12,167 @@ namespace GitReview.VisualStudio.ToolWindows
 {
     public partial class GitReviewToolWindowControl : UserControl
     {
+        private readonly GitReviewCliRunner _runner = new();
+        private CancellationTokenSource? _cts;
+
+        private static readonly Dictionary<string, string[]> ModelsByProvider = new()
+        {
+            ["openrouter"] =
+            [
+                "poolside/laguna-s-2.1:free",
+                "nvidia/nemotron-3-super:free",
+                "cohere/north-mini-code:free",
+                "deepseek/deepseek-r1:free"
+            ],
+            ["gemini"] =
+            [
+                "gemini-2.0-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro"
+            ],
+            ["deepseek"] =
+            [
+                "deepseek-chat",
+                "deepseek-reasoner"
+            ]
+        };
+
         public GitReviewToolWindowControl()
         {
             InitializeComponent();
+            UpdateModelsForSelectedProvider();
+            Log("Ready.");
         }
 
-        private async void ReviewButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private void ModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ReviewButton.IsEnabled = false;
-            ReviewButton.Content = "Reviewing...";
-
-            ResultsPanel.Children.Clear();
-
-            var loadingText = new TextBlock
+            if (AiConfigurationPanel == null)
             {
-                Text = "Analyzing changes...",
-                Opacity = 0.6,
-                Margin = new Thickness(0, 0, 0, 12)
-            };
+                return;
+            }
+            AiConfigurationPanel.Visibility = ModeComboBox.SelectedIndex == 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
 
-            ResultsPanel.Children.Add(loadingText);
+        private void ProviderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateModelsForSelectedProvider();
+        }
+
+        private void UpdateModelsForSelectedProvider()
+        {
+            if (ModelComboBox == null || ProviderComboBox == null)
+            {
+                return;
+            }
+
+            var provider = GetSelectedProviderId();
+            if (ModelsByProvider.TryGetValue(provider, out var models))
+            {
+                ModelComboBox.ItemsSource = models;
+                ModelComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private string GetSelectedProviderId() => ProviderComboBox.SelectedIndex switch
+        {
+            1 => "gemini",
+            2 => "deepseek",
+            _ => "openrouter"
+        };
+
+        private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            GitReviewPackage.Instance?.ShowOptionPage(typeof(GitReviewOptionPage));
+        }
+
+        private void ReviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            _ = GitReviewPackage.Instance.JoinableTaskFactory.RunAsync(ReviewAsync);
+        }
+
+        private async Task ReviewAsync()
+        {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+
+            ReviewButton.IsEnabled = false;
+            ReviewButton.Content = "Processing...";
+            ClearLog();
+            Log("Starting GitReview execution...");
 
             try
             {
-                await Task.Delay(1000);
+                var solutionDir = GitReviewCliRunner.GetSolutionDirectory();
+                if (string.IsNullOrEmpty(solutionDir))
+                {
+                    Log("[ERROR] Please open a solution first.");
+                    return;
+                }
 
-                ResultsPanel.Children.Clear();
+                var repoDir = GitReviewCliRunner.FindGitRoot(solutionDir!);
+                if (repoDir == null)
+                {
+                    Log("[ERROR] Solution is not inside a Git repository.");
+                    return;
+                }
 
-                AddFinding(
-                    "High",
-                    "Possible null reference",
-                    "src/GitReview.Core/ReviewEngine.cs",
-                    42,
-                    "The value may be null when this code path is executed.",
-                    "Consider checking the value before accessing its members.");
+                var args = BuildCliArgs();
+                Log($"> git-review {args}");
 
-                AddFinding(
-                    "Medium",
-                    "Method is doing too much",
-                    "src/GitReview.Core/ReviewEngine.cs",
-                    87,
-                    "This method appears to handle several independent responsibilities.",
-                    "Consider extracting the individual operations into separate methods.");
+                int exitCode = await _runner.RunAsync(repoDir, args, LogOnUIThread, ct);
 
-                AddFinding(
-                    "Low",
-                    "Naming could be clearer",
-                    "src/GitReview.Core/ReviewEngine.cs",
-                    103,
-                    "The variable name does not clearly communicate its purpose.",
-                    "Use a more descriptive name.");
+                if (exitCode == 0)
+                {
+                    Log("\n✅ Execution completed successfully!");
+                }
+                else
+                {
+                    Log($"\n❌ Process exited with code {exitCode}");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Log("\n⚠️ Operation cancelled by user.");
+            }
+            catch (Exception ex)
+            {
+                Log($"\n❌ [EXCEPTION] {ex.Message}");
             }
             finally
             {
                 ReviewButton.IsEnabled = true;
-                ReviewButton.Content = "Review Changes";
+                ReviewButton.Content = "Run GitReview";
             }
         }
 
-        private void AddFinding(
-            string severity,
-            string title,
-            string file,
-            int line,
-            string description,
-            string suggestion)
+        private string BuildCliArgs()
         {
-            var panel = new Border
+            return ModeComboBox.SelectedIndex switch
             {
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(12),
-                Margin = new Thickness(0, 0, 0, 10)
+                1 => "--prompt-only",
+                2 => "raw",
+                _ => $"--ai -p {GetSelectedProviderId()} -m \"{ModelComboBox.Text}\""
             };
+        }
 
-            var stack = new StackPanel();
+        private void LogOnUIThread(string text)
+        {
+            _ = Dispatcher.InvokeAsync(() => Log(text));
+        }
 
-            stack.Children.Add(new TextBlock
-            {
-                Text = $"{severity}  •  {title}",
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 14
-            });
+        private void Log(string message)
+        {
+            LogTextBox.AppendText($"{message}\n");
+            LogTextBox.ScrollToEnd();
+        }
 
-            stack.Children.Add(new TextBlock
-            {
-                Text = $"{file}:{line}",
-                Opacity = 0.6,
-                Margin = new Thickness(0, 4, 0, 8)
-            });
-
-            stack.Children.Add(new TextBlock
-            {
-                Text = description,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 0, 0, 8)
-            });
-
-            stack.Children.Add(new TextBlock
-            {
-                Text = $"Suggestion: {suggestion}",
-                TextWrapping = TextWrapping.Wrap,
-                Opacity = 0.8
-            });
-
-            panel.Child = stack;
-
-            ResultsPanel.Children.Add(panel);
+        private void ClearLog()
+        {
+            LogTextBox.Clear();
         }
     }
 }

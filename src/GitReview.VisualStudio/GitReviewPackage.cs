@@ -19,6 +19,8 @@ namespace GitReview.VisualStudio
 
     [ProvideToolWindow(typeof(ToolWindows.GitReviewToolWindow))]
 
+    [ProvideOptionPage(typeof(Options.GitReviewOptionPage), "GitReview", "General", 0, 0, true)]
+
     [Guid("d3b07384-d11e-49fb-bc3f-fb112b329437")]
     public sealed class GitReviewPackage : AsyncPackage
     {
