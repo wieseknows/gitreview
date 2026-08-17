@@ -2,23 +2,23 @@
 using GitReview.Core.Services.DeepSeek;
 using GitReview.Core.Services.Gemini;
 using GitReview.Core.Services.OpenRouter;
+using GitReview.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GitReview.Cli.Composition;
 
 internal static class LlmServiceCollectionExtensions
 {
-    private static readonly int LlmTimeoutInMinutes = 3;
+    private const int LlmTimeoutInMinutes = 3;
 
-    public static IServiceCollection AddLlmReviewService(this IServiceCollection services, string provider)
+    public static IServiceCollection AddLlmReviewService(this IServiceCollection services, AiProvider provider)
     {
-        return provider.ToLowerInvariant() switch
+        return provider switch
         {
-            "gemini" => services.AddGemini(),
-            "deepseek" => services.AddDeepSeek(),
-            "openrouter" => services.AddOpenRouter(),
-            _ => throw new InvalidOperationException(
-                $"Unknown LLM provider '{provider}'. Supported providers: gemini, deepseek, openrouter")
+            AiProvider.Gemini => services.AddGemini(),
+            AiProvider.DeepSeek => services.AddDeepSeek(),
+            AiProvider.OpenRouter => services.AddOpenRouter(),
+            _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, $"Unsupported LLM provider: {provider}")
         };
     }
 

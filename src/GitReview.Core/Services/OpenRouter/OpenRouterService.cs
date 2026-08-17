@@ -1,5 +1,6 @@
-﻿using GitReview.Core.Options;
-using GitReview.Core.Services.OpenRouter.Dto;
+﻿using GitReview.Core.Services.OpenRouter.Dto;
+using GitReview.Shared.Enums;
+using GitReview.Shared.Providers;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -7,6 +8,8 @@ namespace GitReview.Core.Services.OpenRouter;
 
 public sealed class OpenRouterService : ILlmReviewService
 {
+    private const string Endpoint = "https://openrouter.ai/api/v1/chat/completions";
+
     private readonly HttpClient _httpClient;
 
     public OpenRouterService(HttpClient httpClient)
@@ -16,16 +19,16 @@ public sealed class OpenRouterService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var apiKey = Environment.GetEnvironmentVariable(OpenRouterOptions.ApiKeyEnvironmentVariable);
-
+        var apiKey = Environment.GetEnvironmentVariable(AiProvider.OpenRouter.GetApiKeyEnvVar());
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{OpenRouterOptions.ApiKeyEnvironmentVariable}' environment variable.");
+                $"API Key is missing. Please set the '{AiProvider.OpenRouter.GetApiKeyEnvVar()}' environment variable.");
         }
 
+        var model = AiProvider.OpenRouter.GetModel();
         var requestBody = new OpenRouterRequest(
-            Model: OpenRouterOptions.Model,
+            Model: model,
             Messages:
             [
                 new OpenRouterMessage("system", "You are an expert Senior Code Reviewer."),
@@ -33,9 +36,9 @@ public sealed class OpenRouterService : ILlmReviewService
             ]
         );
 
-        Console.WriteLine($"📡 Model: {OpenRouterOptions.Model} (OpenRouter)");
+        Console.WriteLine($"📡 Model: {model} (OpenRouter)");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, OpenRouterOptions.Endpoint);
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         request.Content = JsonContent.Create(requestBody);
 

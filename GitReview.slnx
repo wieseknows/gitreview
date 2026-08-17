@@ -5,5 +5,9 @@
   <Folder Name="/src/">
     <Project Path="src/GitReview.Cli/GitReview.Cli.csproj" />
     <Project Path="src/GitReview.Core/GitReview.Core.csproj" Id="d1be6a11-beb3-441e-9416-b1e174b0316c" />
+    <Project Path="src/GitReview.Shared/GitReview.Shared.csproj" Id="91f0eb25-daa2-49ba-b780-4cf18d15a481" />
+    <Project Path="src/GitReview.VisualStudio/GitReview.VisualStudio.csproj" Id="aecfb4d3-b12e-403e-bfea-4e24cd86dddb">
+      <Deploy />
+    </Project>
   </Folder>
 </Solution>
