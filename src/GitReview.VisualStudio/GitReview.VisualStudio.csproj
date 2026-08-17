@@ -16,6 +16,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\gitreview-png.png" />
+	  <None Remove="Assets\ss-example.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Assets\gitreview-png.png" />
+	  <Content Include="Assets\ss-example.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectCapability Include="CreateVsixContainer" />
 	</ItemGroup>
 
