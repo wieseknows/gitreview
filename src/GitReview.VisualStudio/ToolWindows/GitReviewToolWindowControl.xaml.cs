@@ -1,4 +1,5 @@
-﻿using GitReview.VisualStudio.Options;
+﻿using GitReview.VisualStudio.Models;
+using GitReview.VisualStudio.Options;
 using GitReview.VisualStudio.Services;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -50,7 +51,9 @@ namespace GitReview.VisualStudio.ToolWindows
             {
                 return;
             }
-            AiConfigurationPanel.Visibility = ModeComboBox.SelectedIndex == 0
+
+            var selectedMode = (ReviewExecutionMode)ModeComboBox.SelectedIndex;
+            AiConfigurationPanel.Visibility = selectedMode == ReviewExecutionMode.AiReview
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
@@ -75,10 +78,11 @@ namespace GitReview.VisualStudio.ToolWindows
             }
         }
 
-        private string GetSelectedProviderId() => ProviderComboBox.SelectedIndex switch
+        private string GetSelectedProviderId() => (AiProvider)ProviderComboBox.SelectedIndex switch
         {
-            1 => "gemini",
-            2 => "deepseek",
+            AiProvider.Gemini => "gemini",
+            AiProvider.DeepSeek => "deepseek",
+            AiProvider.OpenRouter => "openrouter",
             _ => "openrouter"
         };
 
