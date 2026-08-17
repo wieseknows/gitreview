@@ -1,4 +1,5 @@
-﻿using GitReview.Shared.Enums;
+﻿using GitReview.Shared.Constants;
+using GitReview.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +12,18 @@ namespace GitReview.Shared.Providers
 
         public static string GetApiKeyEnvVar(this AiProvider provider) => provider switch
         {
-            AiProvider.Gemini => "GEMINI_API_KEY",
-            AiProvider.DeepSeek => "DEEPSEEK_API_KEY",
-            _ => "OPENROUTER_API_KEY"
+            AiProvider.Gemini => EnvVariables.GeminiApiKey,
+            AiProvider.DeepSeek => EnvVariables.DeepSeekApiKey,
+            AiProvider.OpenRouter => EnvVariables.OpenRouterApiKey,
+            _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, null)
         };
 
         public static string GetModelEnvVar(this AiProvider provider) => provider switch
         {
-            AiProvider.Gemini => "GEMINI_MODEL",
-            AiProvider.DeepSeek => "DEEPSEEK_MODEL",
-            _ => "OPENROUTER_MODEL"
+            AiProvider.Gemini => EnvVariables.GeminiModelKey,
+            AiProvider.DeepSeek => EnvVariables.DeepSeekModelKey,
+            AiProvider.OpenRouter => EnvVariables.OpenRouterModelKey,
+            _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, null)
         };
 
         public static IReadOnlyList<string> GetAvailableModels(this AiProvider provider) => provider switch

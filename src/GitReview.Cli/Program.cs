@@ -33,6 +33,6 @@ Console.CancelKeyPress += (_, e) =>
 };
 
 var command = serviceProvider.GetRequiredService<ReviewCommand>();
-await command.ExecuteAsync(options, cts.Token);
+await command.ExecuteAsync(options.Mode, cts.Token);
 
 Console.WriteLine("\nDone.");

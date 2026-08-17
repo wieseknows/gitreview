@@ -23,7 +23,7 @@ public sealed class ReviewCommand
         }
     }
 
-    public async Task ExecuteAsync(ReviewOptions options, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(ReviewExecutionMode mode, CancellationToken cancellationToken)
     {
         if (!_gitService.IsGitRepository())
         {
@@ -42,9 +42,9 @@ public sealed class ReviewCommand
             return;
         }
 
-        if (!_strategies.TryGetValue(options.Mode, out var strategy))
+        if (!_strategies.TryGetValue(mode, out var strategy))
         {
-            Console.WriteLine($"❌ No strategy found for mode: {options.Mode}");
+            Console.WriteLine($"❌ No strategy found for mode: {mode}");
             return;
         }
 

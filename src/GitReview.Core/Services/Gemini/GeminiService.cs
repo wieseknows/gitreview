@@ -1,11 +1,14 @@
-﻿using GitReview.Core.Options;
-using GitReview.Core.Services.Gemini.Dto;
+﻿using GitReview.Core.Services.Gemini.Dto;
+using GitReview.Shared.Enums;
+using GitReview.Shared.Providers;
 using System.Net.Http.Json;
 
 namespace GitReview.Core.Services.Gemini;
 
 public sealed class GeminiService : ILlmReviewService
 {
+    private const string EndPoint = "https://generativelanguage.googleapis.com/v1beta";
+
     private readonly HttpClient _httpClient;
 
     public GeminiService(HttpClient httpClient)
@@ -15,24 +18,33 @@ public sealed class GeminiService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var apiKey = Environment.GetEnvironmentVariable(GeminiOptions.ApiKeyEnvironmentVariable);
+        var keyVar = AiProvider.Gemini.GetApiKeyEnvVar();
+        var apiKey = Environment.GetEnvironmentVariable(keyVar);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{GeminiOptions.ApiKeyEnvironmentVariable}' environment variable.");
+                $"API Key is missing. Please set the '{keyVar}' environment variable.");
         }
 
-        var requestUri = GeminiOptions.GetGenerateContentUrl();
+        var model = Environment.GetEnvironmentVariable(AiProvider.Gemini.GetModelEnvVar()) is { Length: > 0 } m
+            ? m
+            : AiProvider.Gemini.GetDefaultModel();
+
         var requestBody = new GeminiRequest(
-            [new GeminiContent([new GeminiPart(prompt)])]
-        );
+        [
+            new GeminiContent(
+            [
+                new GeminiPart(prompt)
+            ])
+        ]);
 
-        Console.WriteLine($"📡 Model: {GeminiOptions.Model}");
+        Console.WriteLine($"📡 Model: {model}");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{EndPoint}/models/{model}:generateContent");
         request.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
         request.Content = JsonContent.Create(requestBody);
+
         using var response = await _httpClient.SendAsync(request, cancellationToken);
 
         if (!response.IsSuccessStatusCode)

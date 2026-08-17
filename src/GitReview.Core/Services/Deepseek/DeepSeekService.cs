@@ -1,5 +1,6 @@
-﻿using GitReview.Core.Options;
-using GitReview.Core.Services.Deepseek.Dto;
+﻿using GitReview.Core.Services.Deepseek.Dto;
+using GitReview.Shared.Enums;
+using GitReview.Shared.Providers;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -7,6 +8,8 @@ namespace GitReview.Core.Services.DeepSeek;
 
 public sealed class DeepSeekService : ILlmReviewService
 {
+    private const string Endpoint = "https://api.deepseek.com/v1/chat/completions";
+
     private readonly HttpClient _httpClient;
 
     public DeepSeekService(HttpClient httpClient)
@@ -16,27 +19,32 @@ public sealed class DeepSeekService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var apiKey = Environment.GetEnvironmentVariable(DeepSeekOptions.ApiKeyEnvironmentVariable);
+        var keyVar = AiProvider.DeepSeek.GetApiKeyEnvVar();
+        var apiKey = Environment.GetEnvironmentVariable(keyVar);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{DeepSeekOptions.ApiKeyEnvironmentVariable}' environment variable.");
+                $"API Key is missing. Please set the '{keyVar}' environment variable.");
         }
 
-        Console.WriteLine($"📡 Model: {DeepSeekOptions.Model} (DeepSeek)");
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, DeepSeekOptions.Endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        var model = Environment.GetEnvironmentVariable(AiProvider.DeepSeek.GetModelEnvVar()) is { Length: > 0 } m
+            ? m
+            : AiProvider.DeepSeek.GetDefaultModel();
 
         var requestBody = new DeepSeekRequest(
-            Model: DeepSeekOptions.Model,
-            Messages: [
+            Model: model,
+            Messages:
+            [
                 new DeepSeekMessage("system", "You are an expert Senior Code Reviewer."),
                 new DeepSeekMessage("user", prompt)
             ]
         );
 
+        Console.WriteLine($"📡 Model: {model} (DeepSeek)");
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         request.Content = JsonContent.Create(requestBody);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
