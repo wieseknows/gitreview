@@ -1,9 +1,13 @@
-﻿using GitReview.VisualStudio.Models;
+﻿using GitReview.Shared.Constants;
+using GitReview.Shared.Enums;
+using GitReview.Shared.Extensions;
+using GitReview.VisualStudio.Models;
 using GitReview.VisualStudio.Options;
 using GitReview.VisualStudio.Services;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,36 +17,40 @@ namespace GitReview.VisualStudio.ToolWindows
 {
     public partial class GitReviewToolWindowControl : UserControl
     {
+        private ReviewExecutionMode SelectedMode => ModeComboBox.SelectedValue is ReviewExecutionMode mode
+            ? mode
+            : ReviewExecutionMode.AiReview;
+
+        private AiProvider SelectedProvider => ProviderComboBox.SelectedValue is AiProvider provider
+            ? provider
+            : AiProvider.OpenRouter;
+
         private readonly GitReviewCliRunner _runner = new();
         private CancellationTokenSource? _cts;
-
-        private static readonly Dictionary<string, string[]> ModelsByProvider = new()
-        {
-            ["openrouter"] =
-            [
-                "poolside/laguna-s-2.1:free",
-                "nvidia/nemotron-3-super:free",
-                "cohere/north-mini-code:free",
-                "deepseek/deepseek-r1:free"
-            ],
-            ["gemini"] =
-            [
-                "gemini-2.0-flash",
-                "gemini-1.5-flash",
-                "gemini-1.5-pro"
-            ],
-            ["deepseek"] =
-            [
-                "deepseek-chat",
-                "deepseek-reasoner"
-            ]
-        };
 
         public GitReviewToolWindowControl()
         {
             InitializeComponent();
             UpdateModelsForSelectedProvider();
+            InitComboBoxes();
             Log("Ready.");
+        }
+
+        private static List<DisplayOption<T>> EnumToDisplayOptions<T>() where T : struct, Enum
+        {
+            return Enum.GetValues(typeof(T))
+                       .Cast<T>()
+                       .Select(v => new DisplayOption<T>(v.GetDescription(), v))
+                       .ToList();
+        }
+
+        private void InitComboBoxes()
+        {
+            ModeComboBox.ItemsSource = EnumToDisplayOptions<ReviewExecutionMode>();
+            ModeComboBox.SelectedIndex = 0;
+
+            ProviderComboBox.ItemsSource = EnumToDisplayOptions<AiProvider>();
+            ProviderComboBox.SelectedIndex = 0;
         }
 
         private void ModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -52,8 +60,7 @@ namespace GitReview.VisualStudio.ToolWindows
                 return;
             }
 
-            var selectedMode = (ReviewExecutionMode)ModeComboBox.SelectedIndex;
-            AiConfigurationPanel.Visibility = selectedMode == ReviewExecutionMode.AiReview
+            AiConfigurationPanel.Visibility = SelectedMode == ReviewExecutionMode.AiReview
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
@@ -71,14 +78,14 @@ namespace GitReview.VisualStudio.ToolWindows
             }
 
             var provider = GetSelectedProviderId();
-            if (ModelsByProvider.TryGetValue(provider, out var models))
+            if (SharedConstants.ModelsByProvider.TryGetValue(provider, out var models))
             {
                 ModelComboBox.ItemsSource = models;
                 ModelComboBox.SelectedIndex = 0;
             }
         }
 
-        private string GetSelectedProviderId() => (AiProvider)ProviderComboBox.SelectedIndex switch
+        private string GetSelectedProviderId() => SelectedProvider switch
         {
             AiProvider.Gemini => "gemini",
             AiProvider.DeepSeek => "deepseek",
@@ -165,11 +172,11 @@ namespace GitReview.VisualStudio.ToolWindows
 
         private void LogOnUIThread(string text)
         {
-            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 Log(text);
-            });
+            }).FileAndForget("...");
         }
 
         private void Log(string message)

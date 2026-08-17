@@ -1,4 +1,5 @@
-﻿using GitReview.VisualStudio.Options;
+﻿using GitReview.Shared.Constants;
+using GitReview.VisualStudio.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,28 +15,16 @@ namespace GitReview.VisualStudio.Services
     {
         public async Task<int> RunAsync(string repoDir, string args, Action<string> logCallback, CancellationToken ct)
         {
-            string extensionDir = Path.GetDirectoryName(typeof(GitReviewPackage).Assembly.Location)!;
-            string cliDllPath = Path.Combine(extensionDir, "CliBin", "GitReview.Cli.dll");
-
             var psi = new ProcessStartInfo
             {
+                FileName = "git-review",
+                Arguments = args,
                 WorkingDirectory = repoDir,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
-            if (File.Exists(cliDllPath))
-            {
-                psi.FileName = "dotnet";
-                psi.Arguments = $"\"{cliDllPath}\" {args}";
-            }
-            else
-            {
-                psi.FileName = "git-review";
-                psi.Arguments = args;
-            }
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             ApplyOptionsEnvironmentVariables(psi);
@@ -92,16 +81,16 @@ namespace GitReview.VisualStudio.Services
 
             if (!string.IsNullOrWhiteSpace(options.OpenRouterApiKey))
             {
-                psi.EnvironmentVariables["OPENROUTER_API_KEY"] = options.OpenRouterApiKey;
+                psi.EnvironmentVariables[EnvVariables.OpenRouterApiKey] = options.OpenRouterApiKey;
             }
             if (!string.IsNullOrWhiteSpace(options.GeminiApiKey))
             {
-                psi.EnvironmentVariables["GEMINI_API_KEY"] = options.GeminiApiKey;
+                psi.EnvironmentVariables[EnvVariables.GeminiApiKey] = options.GeminiApiKey;
             }
 
             if (!string.IsNullOrWhiteSpace(options.DeepSeekApiKey))
             {
-                psi.EnvironmentVariables["DEEPSEEK_API_KEY"] = options.DeepSeekApiKey;
+                psi.EnvironmentVariables[EnvVariables.DeepSeekApiKey] = options.DeepSeekApiKey;
             }
         }
 

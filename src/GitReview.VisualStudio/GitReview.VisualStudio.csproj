@@ -39,4 +39,8 @@
 		<PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.40034" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\GitReview.Shared\GitReview.Shared.csproj" />
+	</ItemGroup>
+
 </Project>

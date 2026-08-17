@@ -20,11 +20,11 @@
         <!-- 1. Mode Selection -->
         <StackPanel Grid.Row="0" Margin="0,0,0,10">
             <TextBlock Text="Execution Mode" FontWeight="Bold" Margin="0,0,0,4" Foreground="White"/>
-            <ComboBox x:Name="ModeComboBox" Height="28" SelectedIndex="0" SelectionChanged="ModeComboBox_SelectionChanged">
-                <ComboBoxItem Content="🤖 AI Review (Full Analysis)"/>
-                <ComboBoxItem Content="📝 Generate Prompt Only"/>
-                <ComboBoxItem Content="📄 Raw Git Diff"/>
-            </ComboBox>
+            <ComboBox x:Name="ModeComboBox" 
+              Height="28" 
+              DisplayMemberPath="Title" 
+              SelectedValuePath="Value" 
+              SelectionChanged="ModeComboBox_SelectionChanged"/>
         </StackPanel>
 
         <!-- 2. Dynamic AI Panel -->
@@ -39,11 +39,11 @@
                         Click="OpenSettingsButton_Click"/>
             </Grid>
 
-            <ComboBox x:Name="ProviderComboBox" Height="28" SelectedIndex="0" SelectionChanged="ProviderComboBox_SelectionChanged">
-                <ComboBoxItem Content="OpenRouter"/>
-                <ComboBoxItem Content="Gemini"/>
-                <ComboBoxItem Content="DeepSeek"/>
-            </ComboBox>
+            <ComboBox x:Name="ProviderComboBox" 
+              Height="28" 
+              DisplayMemberPath="Title" 
+              SelectedValuePath="Value" 
+              SelectionChanged="ProviderComboBox_SelectionChanged"/>
 
             <TextBlock Text="Model" FontWeight="Bold" Margin="0,8,0,4" Foreground="White"/>
             <ComboBox x:Name="ModelComboBox" Height="28" IsEditable="True"/>

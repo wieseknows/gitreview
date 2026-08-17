@@ -3,6 +3,7 @@ using GitReview.Core.Helpers;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
 using GitReview.Core.Services;
+using GitReview.Shared.Enums;
 
 namespace GitReview.Core.Strategies;
 
@@ -12,7 +13,7 @@ public sealed class AiReviewOutputStrategy : IOutputStrategy
     private readonly IGitService _gitService;
     private readonly ILlmReviewService _llm;
 
-    public OutputMode Mode => OutputMode.AiReview;
+    public ReviewExecutionMode Mode => ReviewExecutionMode.AiReview;
 
     private const string FileName = "ai_review_result.md";
 

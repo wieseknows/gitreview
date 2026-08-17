@@ -1,17 +1,13 @@
-﻿namespace GitReview.Core.Models;
+﻿using GitReview.Shared.Constants;
+using GitReview.Shared.Enums;
 
-public enum OutputMode
-{
-    PromptWithClipboard,
-    RawDiffOnly,
-    AiReview
-}
+namespace GitReview.Core.Models;
 
 public sealed class ReviewOptions
 {
     private const string DefaultLlmProvider = "openrouter";
 
-    public OutputMode Mode { get; init; } = OutputMode.PromptWithClipboard;
+    public ReviewExecutionMode Mode { get; init; } = ReviewExecutionMode.PromptWithClipboard;
     public string Provider { get; init; } = DefaultLlmProvider;
 
     public static ReviewOptions Parse(string[] args)
@@ -37,39 +33,39 @@ public sealed class ReviewOptions
             return null;
         }
 
-        var mode = OutputMode.PromptWithClipboard;
+        var mode = ReviewExecutionMode.PromptWithClipboard;
         string? provider = GetProviderValue(args);
 
         if (Has(args, "deepseek", "--deepseek", "-ds"))
         {
-            mode = OutputMode.AiReview;
+            mode = ReviewExecutionMode.AiReview;
             provider ??= "deepseek";
         }
         else if (Has(args, "gemini", "--gemini", "-gem"))
         {
-            mode = OutputMode.AiReview;
+            mode = ReviewExecutionMode.AiReview;
             provider ??= "gemini";
         }
         else if (Has(args, "openrouter", "--openrouter", "-or"))
         {
-            mode = OutputMode.AiReview;
+            mode = ReviewExecutionMode.AiReview;
             provider ??= "openrouter";
         }
         else if (Has(args, "ai", "--ai"))
         {
-            mode = OutputMode.AiReview;
+            mode = ReviewExecutionMode.AiReview;
         }
         else if (Has(args, "raw", "--raw", "-r"))
         {
-            mode = OutputMode.RawDiffOnly;
+            mode = ReviewExecutionMode.RawDiffOnly;
         }
 
-        if (provider != null && mode == OutputMode.PromptWithClipboard)
+        if (provider != null && mode == ReviewExecutionMode.PromptWithClipboard)
         {
-            mode = OutputMode.AiReview;
+            mode = ReviewExecutionMode.AiReview;
         }
 
-        provider ??= Environment.GetEnvironmentVariable("GIT_REVIEW_PROVIDER");
+        provider ??= Environment.GetEnvironmentVariable(EnvVariables.Provider);
         if (string.IsNullOrWhiteSpace(provider))
         {
             provider = DefaultLlmProvider;

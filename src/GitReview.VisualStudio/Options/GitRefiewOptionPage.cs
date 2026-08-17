@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using GitReview.Shared.Constants;
+using Microsoft.VisualStudio.Shell;
 using System.ComponentModel;
 
 namespace GitReview.VisualStudio.Options
@@ -8,17 +9,17 @@ namespace GitReview.VisualStudio.Options
     {
         [Category("API Keys")]
         [DisplayName("OpenRouter API Key")]
-        [Description("Set OPENROUTER_API_KEY for OpenRouter requests.")]
+        [Description($"Set {EnvVariables.OpenRouterApiKey} for OpenRouter requests.")]
         public string OpenRouterApiKey { get; set; } = string.Empty;
 
         [Category("API Keys")]
         [DisplayName("Gemini API Key")]
-        [Description("Set GEMINI_API_KEY for Google Gemini requests.")]
+        [Description($"Set {EnvVariables.GeminiApiKey} for Google Gemini requests.")]
         public string GeminiApiKey { get; set; } = string.Empty;
 
         [Category("API Keys")]
         [DisplayName("DeepSeek API Key")]
-        [Description("Set DEEPSEEK_API_KEY for DeepSeek requests.")]
+        [Description($"Set {EnvVariables.DeepSeekApiKey} for DeepSeek requests.")]
         public string DeepSeekApiKey { get; set; } = string.Empty;
     }
 }

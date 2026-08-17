@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GitReview.Shared\GitReview.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Templates\prompt.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
