@@ -165,7 +165,11 @@ namespace GitReview.VisualStudio.ToolWindows
 
         private void LogOnUIThread(string text)
         {
-            _ = Dispatcher.InvokeAsync(() => Log(text));
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                Log(text);
+            });
         }
 
         private void Log(string message)

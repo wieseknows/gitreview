@@ -11,17 +11,17 @@ namespace GitReview.VisualStudio
         AllowsBackgroundLoading = true)]
 
     [InstalledProductRegistration(
-        "GitReview",
-        "AI-powered code review for Visual Studio",
-        "1.0")]
+        VsixConstants.CategoryName,
+        VsixConstants.ProductDetails,
+        VsixConstants.ProductVersion)]
 
     [ProvideMenuResource("Menus.ctmenu", 1)]
 
     [ProvideToolWindow(typeof(ToolWindows.GitReviewToolWindow))]
 
-    [ProvideOptionPage(typeof(Options.GitReviewOptionPage), "GitReview", "General", 0, 0, true)]
+    [ProvideOptionPage(typeof(Options.GitReviewOptionPage), VsixConstants.CategoryName, VsixConstants.PageName, 0, 0, true)]
 
-    [Guid("d3b07384-d11e-49fb-bc3f-fb112b329437")]
+    [Guid(PackageGuids.PackageGuidString)]
     public sealed class GitReviewPackage : AsyncPackage
     {
         public static GitReviewPackage Instance { get; private set; } = null!;

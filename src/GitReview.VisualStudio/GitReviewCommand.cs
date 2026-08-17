@@ -10,7 +10,7 @@ namespace GitReview.VisualStudio
         public const int CommandId = 0x0100;
 
         public static readonly Guid CommandSet =
-            new Guid("f5b8e4a1-2c67-4d91-8e53-61a7c9b20f44");
+            new("f5b8e4a1-2c67-4d91-8e53-61a7c9b20f44");
 
         public static async Task InitializeAsync(
             AsyncPackage package)
