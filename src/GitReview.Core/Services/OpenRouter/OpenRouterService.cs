@@ -19,19 +19,14 @@ public sealed class OpenRouterService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var keyVar = AiProvider.OpenRouter.GetApiKeyEnvVar();
-        var apiKey = Environment.GetEnvironmentVariable(keyVar);
-
+        var apiKey = Environment.GetEnvironmentVariable(AiProvider.OpenRouter.GetApiKeyEnvVar());
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{keyVar}' environment variable.");
+                $"API Key is missing. Please set the '{AiProvider.OpenRouter.GetApiKeyEnvVar()}' environment variable.");
         }
 
-        var model = Environment.GetEnvironmentVariable(AiProvider.OpenRouter.GetModelEnvVar()) is { Length: > 0 } m
-            ? m
-            : AiProvider.OpenRouter.GetDefaultModel();
-
+        var model = AiProvider.OpenRouter.GetModel();
         var requestBody = new OpenRouterRequest(
             Model: model,
             Messages:

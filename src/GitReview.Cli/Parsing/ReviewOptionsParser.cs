@@ -13,7 +13,7 @@ namespace GitReview.Cli.Parsing
 
             ReviewExecutionMode? mode = null;
             AiProvider? selectedProvider = !string.IsNullOrWhiteSpace(rawProviderArg)
-                ? ProviderMetadata.ParseProvider(rawProviderArg)
+                ? ProviderRegistry.ParseProvider(rawProviderArg)
                 : null;
 
             if (Has(args, "deepseek", "--deepseek", "-ds"))
@@ -48,7 +48,7 @@ namespace GitReview.Cli.Parsing
             if (!selectedProvider.HasValue)
             {
                 var envProvider = Environment.GetEnvironmentVariable(EnvVariables.Provider);
-                selectedProvider = ProviderMetadata.ParseProvider(envProvider);
+                selectedProvider = ProviderRegistry.ParseProvider(envProvider);
             }
 
             return new ReviewOptions(

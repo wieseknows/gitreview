@@ -19,19 +19,14 @@ public sealed class DeepSeekService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var keyVar = AiProvider.DeepSeek.GetApiKeyEnvVar();
-        var apiKey = Environment.GetEnvironmentVariable(keyVar);
-
+        var apiKey = Environment.GetEnvironmentVariable(AiProvider.DeepSeek.GetApiKeyEnvVar());
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{keyVar}' environment variable.");
+                $"API Key is missing. Please set the '{AiProvider.DeepSeek.GetApiKeyEnvVar()}' environment variable.");
         }
 
-        var model = Environment.GetEnvironmentVariable(AiProvider.DeepSeek.GetModelEnvVar()) is { Length: > 0 } m
-            ? m
-            : AiProvider.DeepSeek.GetDefaultModel();
-
+        var model = AiProvider.DeepSeek.GetModel();
         var requestBody = new DeepSeekRequest(
             Model: model,
             Messages:

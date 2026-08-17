@@ -18,19 +18,14 @@ public sealed class GeminiService : ILlmReviewService
 
     public async Task<string> GetReviewAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var keyVar = AiProvider.Gemini.GetApiKeyEnvVar();
-        var apiKey = Environment.GetEnvironmentVariable(keyVar);
-
+        var apiKey = Environment.GetEnvironmentVariable(AiProvider.Gemini.GetApiKeyEnvVar());
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new InvalidOperationException(
-                $"API Key is missing. Please set the '{keyVar}' environment variable.");
+                $"API Key is missing. Please set the '{AiProvider.Gemini.GetApiKeyEnvVar()}' environment variable.");
         }
 
-        var model = Environment.GetEnvironmentVariable(AiProvider.Gemini.GetModelEnvVar()) is { Length: > 0 } m
-            ? m
-            : AiProvider.Gemini.GetDefaultModel();
-
+        var model = AiProvider.Gemini.GetModel();
         var requestBody = new GeminiRequest(
         [
             new GeminiContent(
