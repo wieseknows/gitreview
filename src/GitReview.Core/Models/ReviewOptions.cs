@@ -5,4 +5,4 @@ namespace GitReview.Core.Models;
 
 public sealed record ReviewOptions(
     ReviewExecutionMode Mode = ReviewExecutionMode.PromptWithClipboard,
-    AiProvider Provider = ProviderMetadata.DefaultProvider);
+    AiProvider Provider = ProviderRegistry.DefaultProvider);
