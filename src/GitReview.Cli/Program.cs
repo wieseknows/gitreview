@@ -5,6 +5,10 @@ using GitReview.Core.Models;
 using GitReview.Core.Prompt;
 using GitReview.Core.Strategies;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text;
+
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
 
 Console.WriteLine("GitReview started\n");
 
