@@ -5,6 +5,6 @@
 		<Nullable>enable</Nullable>
 		<IsPackable>true</IsPackable>
 		<PackageId>wieseknows.GitReview.Shared</PackageId>
-		<Version>1.0.7</Version>
+		<Authors>wieseknows</Authors>
 	</PropertyGroup>
 </Project>
