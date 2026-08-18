@@ -1,4 +1,5 @@
-﻿using GitReview.Shared.Enums;
+﻿using GitReview.Shared.Constants;
+using GitReview.Shared.Enums;
 using GitReview.Shared.Providers;
 using GitReview.VisualStudio.Options;
 using Microsoft.VisualStudio;
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,15 +18,18 @@ namespace GitReview.VisualStudio.Services
     {
         public async Task<int> RunAsync(string repoDir, string args, Action<string> logCallback, CancellationToken ct)
         {
+            var cliExePath = GetCliExecutablePath();
             var psi = new ProcessStartInfo
             {
-                FileName = "git-review",
+                FileName = cliExePath,
                 Arguments = args,
                 WorkingDirectory = repoDir,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                StandardErrorEncoding = System.Text.Encoding.UTF8
             };
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -49,7 +54,7 @@ namespace GitReview.VisualStudio.Services
 
             if (!process.Start())
             {
-                throw new InvalidOperationException("Failed to start git-review process.");
+                throw new InvalidOperationException($"Failed to start {cliExePath} process.");
             }
 
             process.BeginOutputReadLine();
@@ -134,6 +139,45 @@ namespace GitReview.VisualStudio.Services
                 dir = dir.Parent;
             }
             return null;
+        }
+
+        private static string GetCliExecutablePath()
+        {
+#if DEBUG
+            // In Debug builds, prefer the locally built CLI from the solution to avoid relying on the globally installed tool.
+            try
+            {
+                var assembly = typeof(GitReviewCliRunner).Assembly;
+                var attribute = System.Reflection.CustomAttributeData.GetCustomAttributes(assembly)
+                    .FirstOrDefault(a => a.AttributeType == typeof(System.Reflection.AssemblyMetadataAttribute)
+                                      && a.ConstructorArguments.Count > 0
+                                      && a.ConstructorArguments[0].Value?.ToString() == "SolutionDir");
+
+                string? solutionDir = attribute?.ConstructorArguments[1].Value?.ToString();
+
+                if (!string.IsNullOrEmpty(solutionDir))
+                {
+                    string currentAssemblyName = assembly.GetName().Name;
+                    string cliProjectName = currentAssemblyName.Replace(".VisualStudio", ".Cli");
+
+                    var localCliPath = Path.Combine(
+                        solutionDir,
+                        cliProjectName,
+                        "bin",
+                        "Debug",
+                        "net10.0",
+                        $"{cliProjectName}.exe");
+
+                    if (File.Exists(localCliPath))
+                    {
+                        return localCliPath;
+                    }
+                }
+            }
+            catch { }
+#endif
+
+            return CliConstants.ExecutableName;
         }
     }
 }
