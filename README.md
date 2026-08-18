@@ -9,6 +9,11 @@ CLI tool that converts `git diff` into a structured LLM code review prompt, expo
 - 📝 **Raw Patch Mode:** Exports clean `.diff` patch files without LLM prompt formatting.
 - 📂 **Auto Focus:** Opens Windows Explorer / macOS Finder with the output file pre-selected.
 - 🏗 **Zero Config:** Works out of the box as a native Git subcommand via .NET Global Tool.
+- 🧩 **IDE Integration:** Available as an extension for Visual Studio.
+
+## Visual Studio Extension
+
+Prefer working directly inside your IDE? Check out the official **GitReview for Visual Studio** extension on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=wieseknows.GitReview)!
 
 ## Installation
 
@@ -78,3 +83,7 @@ Run directly from any Git repository:
 - `ai_review_result.md` — Detailed code review generated directly by the selected AI model.
 - `review.md` — Formatted prompt ready for manual pasting into LLM chatbots.
 - `git_changes.diff` — Clean git diff patch file.
+
+## License
+
+Distributed under the MIT License.
