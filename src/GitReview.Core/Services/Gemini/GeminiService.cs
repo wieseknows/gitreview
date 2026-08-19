@@ -1,4 +1,5 @@
-﻿using GitReview.Core.Services.Gemini.Dto;
+﻿using GitReview.Core.Exceptions;
+using GitReview.Core.Services.Gemini.Dto;
 using GitReview.Shared.Enums;
 using GitReview.Shared.Providers;
 using System.Net.Http.Json;
@@ -36,29 +37,42 @@ public sealed class GeminiService : ILlmReviewService
 
         Console.WriteLine($"📡 Model: {model}");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{EndPoint}/models/{model}:generateContent");
-        request.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
-        request.Content = JsonContent.Create(requestBody);
-
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var errorPayload = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Gemini API error [{response.StatusCode}]: {errorPayload}");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{EndPoint}/models/{model}:generateContent");
+            request.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
+            request.Content = JsonContent.Create(requestBody);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorPayload = await response.Content.ReadAsStringAsync(cancellationToken);
+                throw new HttpRequestException($"Gemini API error [{response.StatusCode}]: {errorPayload}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cancellationToken);
+            var textResult = result?.Candidates?
+                .SelectMany(c => c.Content?.Parts ?? [])
+                .Select(p => p.Text)
+                .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
+
+            if (string.IsNullOrWhiteSpace(textResult))
+            {
+                throw new InvalidOperationException("Received empty text response from Gemini API.");
+            }
+
+            return textResult;
         }
-
-        var result = await response.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cancellationToken);
-        var textResult = result?.Candidates?
-            .SelectMany(c => c.Content?.Parts ?? [])
-            .Select(p => p.Text)
-            .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
-
-        if (string.IsNullOrWhiteSpace(textResult))
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            throw new InvalidOperationException("Received empty text response from Gemini API.");
+            // Timeout triggered by HttpClient.Timeout
+            throw new LlmTimeoutException("Request timed out while waiting for LLM response.", ex);
         }
-
-        return textResult;
+        catch (HttpRequestException ex)
+        {
+            // Network failure / DNS / Connection drops
+            throw new LlmApiException($"Network error occurred while calling OpenRouter API: {ex.Message}", ex);
+        }
     }
 }

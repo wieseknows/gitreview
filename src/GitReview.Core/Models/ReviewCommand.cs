@@ -1,4 +1,5 @@
-﻿using GitReview.Core.Git;
+﻿using GitReview.Core.Exceptions;
+using GitReview.Core.Git;
 using GitReview.Shared.Enums;
 
 namespace GitReview.Core.Models;
@@ -48,6 +49,30 @@ public sealed class ReviewCommand
             return;
         }
 
-        await strategy.ProcessAsync(diff, cancellationToken);
+        try
+        {
+            await strategy.ProcessAsync(diff, cancellationToken);
+        }
+        catch (LlmTimeoutException ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"⏱️  Timeout Error: {ex.Message}");
+            Console.WriteLine("    The AI provider took too long to respond. Please try again later or select a faster model/provider.");
+        }
+        catch (LlmApiException ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"❌ AI Provider Error: {ex.Message}");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            Console.WriteLine();
+            Console.WriteLine("⚠️  Operation was cancelled by user.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"💥 An unexpected error occurred: {ex.Message}");
+        }
     }
 }

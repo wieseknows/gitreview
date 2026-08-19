@@ -1,4 +1,5 @@
-﻿using GitReview.Core.Services.Deepseek.Dto;
+﻿using GitReview.Core.Exceptions;
+using GitReview.Core.Services.Deepseek.Dto;
 using GitReview.Shared.Enums;
 using GitReview.Shared.Providers;
 using System.Net.Http.Headers;
@@ -38,28 +39,41 @@ public sealed class DeepSeekService : ILlmReviewService
 
         Console.WriteLine($"📡 Model: {model} (DeepSeek)");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        request.Content = JsonContent.Create(requestBody);
-
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var errorPayload = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"DeepSeek API error [{response.StatusCode}]: {errorPayload}");
+            using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            request.Content = JsonContent.Create(requestBody);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorPayload = await response.Content.ReadAsStringAsync(cancellationToken);
+                throw new HttpRequestException($"DeepSeek API error [{response.StatusCode}]: {errorPayload}");
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<DeepSeekResponse>(cancellationToken: cancellationToken);
+            var textResult = result?.Choices?
+                .Select(c => c.Message?.Content)
+                .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
+
+            if (string.IsNullOrWhiteSpace(textResult))
+            {
+                throw new InvalidOperationException("Received empty text response from DeepSeek API.");
+            }
+
+            return textResult;
         }
-
-        var result = await response.Content.ReadFromJsonAsync<DeepSeekResponse>(cancellationToken: cancellationToken);
-        var textResult = result?.Choices?
-            .Select(c => c.Message?.Content)
-            .FirstOrDefault(t => !string.IsNullOrWhiteSpace(t));
-
-        if (string.IsNullOrWhiteSpace(textResult))
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            throw new InvalidOperationException("Received empty text response from DeepSeek API.");
+            // Timeout triggered by HttpClient.Timeout
+            throw new LlmTimeoutException("Request timed out while waiting for LLM response.", ex);
         }
-
-        return textResult;
+        catch (HttpRequestException ex)
+        {
+            // Network failure / DNS / Connection drops
+            throw new LlmApiException($"Network error occurred while calling OpenRouter API: {ex.Message}", ex);
+        }
     }
 }
