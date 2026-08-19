@@ -1,5 +1,4 @@
 ﻿using GitReview.Core.Git;
-using GitReview.Core.Helpers;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
 using GitReview.Core.Services;
@@ -9,23 +8,24 @@ namespace GitReview.Core.Strategies;
 
 public sealed class AiReviewOutputStrategy : IOutputStrategy
 {
-    private readonly IPromptBuilder _promptBuilder;
     private readonly IGitService _gitService;
-    private readonly ILlmReviewService _llm;
-
-    public ReviewExecutionMode Mode => ReviewExecutionMode.AiReview;
-
-    private const string FileName = "ai_review_result.md";
+    private readonly ILlmReviewService _llmService;
+    private readonly IPromptBuilder _promptBuilder;
+    private readonly IReviewResponseParser _autoFixService;
 
     public AiReviewOutputStrategy(
-        IPromptBuilder promptBuilder,
         IGitService gitService,
-        ILlmReviewService llm)
+        ILlmReviewService llmService,
+        IPromptBuilder promptBuilder,
+        IReviewResponseParser autoFixService)
     {
-        _promptBuilder = promptBuilder;
         _gitService = gitService;
-        _llm = llm;
+        _llmService = llmService;
+        _promptBuilder = promptBuilder;
+        _autoFixService = autoFixService;
     }
+
+    public ReviewExecutionMode Mode => ReviewExecutionMode.AiReview;
 
     public async Task ProcessAsync(GitDiffResult diff, CancellationToken cancellationToken = default)
     {
@@ -34,35 +34,47 @@ public sealed class AiReviewOutputStrategy : IOutputStrategy
             _gitService.GetRepositoryRoot(),
             _gitService.GetCurrentBranch());
 
-        Console.WriteLine("🤖 Analyzing code changes with AI...");
+        Console.WriteLine("🤖 Requesting code review from AI...");
+        var rawResponse = await _llmService.GetReviewAsync(prompt, cancellationToken);
 
-        try
-        {
-            var aiReview = await _llm.GetReviewAsync(prompt, cancellationToken);
+        // Separate clean text from patch block
+        var (cleanReview, patchContent) = _autoFixService.Parse(rawResponse);
 
-            await ReviewOutputHelper.SaveClipboardAndRevealAsync(
-                content: aiReview,
-                fileName: FileName,
-                successLabel: "AI review",
-                cancellationToken: cancellationToken);
+        // Display formatted markdown review to stdout
+        Console.WriteLine();
+        Console.WriteLine("========= AI CODE REVIEW =========");
+        Console.WriteLine(cleanReview);
+        Console.WriteLine("==================================");
+        Console.WriteLine();
 
-            Console.WriteLine();
-        }
-        catch (HttpRequestException ex)
+        // Prompt user if a valid patch was extracted
+        if (string.IsNullOrWhiteSpace(patchContent))
         {
-            Console.WriteLine($"❌ LLM HTTP error: {ex.Message}");
+            return;
         }
-        catch (InvalidOperationException ex)
+
+        Console.WriteLine("💡 AI suggested automatic code fixes.");
+        Console.Write("Do you want to apply suggested changes to your working directory? [y/N]: ");
+
+        var input = Console.ReadLine()?.Trim().ToLowerInvariant();
+        if (input == "y" || input == "yes")
         {
-            Console.WriteLine($"⚠️ {ex.Message}");
+            Console.WriteLine("🛠 Applying patch via git apply...");
+
+            try
+            {
+                _gitService.ApplyPatch(patchContent);
+                Console.WriteLine("✅ Suggested changes successfully applied! Use 'git diff' to review changes.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("❌ Failed to apply patch cleanly.");
+                Console.WriteLine($"Git Error:\n{ex.Message}");
+            }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        else
         {
-            Console.WriteLine("⚠️ Cancelled.");
-        }
-        catch (TaskCanceledException)
-        {
-            Console.WriteLine("❌ AI request timed out");
+            Console.WriteLine("Skipped applying patch.");
         }
     }
 }

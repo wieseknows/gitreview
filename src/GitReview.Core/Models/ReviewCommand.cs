@@ -26,12 +26,6 @@ public sealed class ReviewCommand
 
     public async Task ExecuteAsync(ReviewExecutionMode mode, CancellationToken cancellationToken)
     {
-        if (!_gitService.IsGitRepository())
-        {
-            Console.WriteLine("❌ Not a git repository");
-            return;
-        }
-
         var diff = _gitService.GetDiff();
 
         Console.WriteLine($"Changed files: {diff.ChangedFiles}");

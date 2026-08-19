@@ -29,34 +29,40 @@ public abstract class BaseLlmService : ILlmReviewService
         }
 
         var model = Provider.GetModel();
-
         Console.WriteLine($"📡 Model: {model} ({ProviderName})");
+
+        using var request = CreateRequest(Provider.GetEndpoint(), model, apiKey, prompt);
+
+        HttpResponseMessage response;
 
         try
         {
-            using var request = CreateRequest(Provider.GetEndpoint(), model, apiKey, prompt);
-            using var response = await HttpClient.SendAsync(request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                await HandleErrorResponseAsync(response, cancellationToken);
-            }
-
-            var textResult = await ExtractTextResponseAsync(response, cancellationToken);
-            if (string.IsNullOrWhiteSpace(textResult))
-            {
-                throw new InvalidOperationException($"Received empty text response from {ProviderName} API.");
-            }
-
-            return textResult;
+            response = await HttpClient.SendAsync(request, cancellationToken);
         }
-        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
             throw new LlmTimeoutException("Request timed out while waiting for LLM response.", ex);
         }
         catch (HttpRequestException ex)
         {
             throw new LlmApiException($"Network error occurred while calling {ProviderName} API: {ex.Message}", ex);
+        }
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                await HandleErrorResponseAsync(response, cancellationToken);
+            }
+
+            var textResult = await ExtractTextResponseAsync(response, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(textResult))
+            {
+                throw new LlmApiException($"Received empty text response from {ProviderName} API.");
+            }
+
+            return textResult;
         }
     }
 
@@ -67,7 +73,6 @@ public abstract class BaseLlmService : ILlmReviewService
     private async Task HandleErrorResponseAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         var errorPayload = await response.Content.ReadAsStringAsync(cancellationToken);
-
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
         {
             throw new LlmApiException(

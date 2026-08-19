@@ -4,7 +4,6 @@ using GitReview.Core.Git;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
 using GitReview.Core.Services;
-using GitReview.Core.Strategies;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Text;
@@ -26,10 +25,9 @@ services.AddSingleton<IGitService, GitService>();
 services.AddSingleton<IPromptBuilder, PromptBuilder>();
 
 services.AddLlmReviewService(options.Provider);
+services.AddOutputStrategies();
 
-services.AddTransient<IOutputStrategy, PromptOutputStrategy>();
-services.AddTransient<IOutputStrategy, RawDiffOutputStrategy>();
-services.AddTransient<IOutputStrategy, AiReviewOutputStrategy>();
+services.AddTransient<IReviewResponseParser, ReviewResponseParser>();
 
 services.AddTransient<ReviewCommand>();
 

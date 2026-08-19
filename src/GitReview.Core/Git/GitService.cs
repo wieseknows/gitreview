@@ -17,29 +17,29 @@ public sealed class GitService : IGitService
 
         return new GitDiffResult
         {
-            StagedDiff = ExecuteGit("diff --cached"),
+            StagedDiff = ExecuteGit("diff", "--cached"),
             WorkingTreeDiff = ExecuteGit("diff")
         };
     }
 
     public string GetRepositoryRoot()
     {
-        return ExecuteGit("rev-parse --show-toplevel").Trim();
+        return ExecuteGit("rev-parse", "--show-toplevel").Trim();
     }
 
     public string GetCurrentBranch()
     {
-        return ExecuteGit("branch --show-current").Trim();
+        return ExecuteGit("branch", "--show-current").Trim();
     }
 
     public bool IsGitRepository()
     {
         try
         {
-            var result = ExecuteGit("rev-parse --is-inside-work-tree");
+            var result = ExecuteGit("rev-parse", "--is-inside-work-tree");
             return result
                 .Trim()
-                .Equals("true", StringComparison.OrdinalIgnoreCase);
+                .Equals(true.ToString(), StringComparison.OrdinalIgnoreCase);
         }
         catch
         {
@@ -47,19 +47,76 @@ public sealed class GitService : IGitService
         }
     }
 
-    private string ExecuteGit(string arguments)
+    public void ApplyPatch(string patchContent)
+    {
+        if (string.IsNullOrWhiteSpace(patchContent))
+        {
+            throw new ArgumentException("Patch content is empty.", nameof(patchContent));
+        }
+
+        var sanitized = patchContent
+            .Replace('\u00A0', ' ')
+            .Replace("\r\n", "\n");
+
+        if (!sanitized.EndsWith('\n'))
+        {
+            sanitized += "\n";
+        }
+
+        if (!sanitized.TrimStart().StartsWith("diff --git ", StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Invalid Git unified diff.", nameof(patchContent));
+        }
+
+        var tempPatchPath = Path.Combine(
+            Path.GetTempPath(),
+            $"gitreview_fix_{Guid.NewGuid():N}.patch");
+
+        try
+        {
+            File.WriteAllText(tempPatchPath, sanitized);
+
+            // Last argument is the path to the patch file (git apply <file>)
+            ExecuteGit(
+                "apply",
+                "--ignore-space-change",
+                "--ignore-whitespace",
+                "--inaccurate-eof",
+                "--whitespace=nowarn",
+                "--unidiff-zero",
+                "--recount",
+                tempPatchPath);
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(tempPatchPath))
+                {
+                    File.Delete(tempPatchPath);
+                }
+            }
+            catch { }
+        }
+    }
+
+    private string ExecuteGit(params string[] args)
     {
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
             FileName = "git",
-            Arguments = arguments,
             WorkingDirectory = Directory.GetCurrentDirectory(),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+
+        foreach (var arg in args)
+        {
+            process.StartInfo.ArgumentList.Add(arg);
+        }
 
         var outputBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -90,19 +147,16 @@ public sealed class GitService : IGitService
             {
                 process.Kill(entireProcessTree: true);
             }
-            catch
-            {
-                // ignore
-            }
+            catch { }
 
-            throw new TimeoutException($"Git command timed out after {TimeoutMs}ms: git {arguments}");
+            throw new TimeoutException($"Git command timed out after {TimeoutMs}ms: git {string.Join(" ", args)}");
         }
 
         process.WaitForExit();
 
         if (process.ExitCode != 0)
         {
-            throw new InvalidOperationException($"Git command failed (exit code {process.ExitCode}): git {arguments}\n{errorBuilder}");
+            throw new InvalidOperationException($"Git command failed (exit code {process.ExitCode}): git {string.Join(" ", args)}\n{errorBuilder}");
         }
 
         return outputBuilder.ToString();

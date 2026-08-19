@@ -8,4 +8,5 @@ public interface IGitService
     string GetRepositoryRoot();
     string GetCurrentBranch();
     bool IsGitRepository();
+    void ApplyPatch(string patchContent);
 }
