@@ -11,17 +11,20 @@ namespace GitReview.Shared.Providers
         public string ApiKeyEnvVar { get; }
         public string ModelEnvVar { get; }
         public IReadOnlyList<string> Models { get; }
+        public string Endpoint { get; }
 
         public ProviderSpec(
             AiProvider provider,
             string apiKeyEnvVar,
             string modelEnvVar,
-            IReadOnlyList<string> models)
+            IReadOnlyList<string> models,
+            string endPoint)
         {
             Provider = provider;
             ApiKeyEnvVar = apiKeyEnvVar;
             ModelEnvVar = modelEnvVar;
             Models = models;
+            Endpoint = endPoint;
         }
 
         public string DefaultModel => Models.FirstOrDefault() ?? string.Empty;
@@ -29,7 +32,9 @@ namespace GitReview.Shared.Providers
         public string GetModel()
         {
             var value = Environment.GetEnvironmentVariable(ModelEnvVar);
-            return string.IsNullOrWhiteSpace(value) ? DefaultModel : value;
+            return string.IsNullOrWhiteSpace(value)
+                ? DefaultModel
+                : value;
         }
 
         public string GetApiKey()

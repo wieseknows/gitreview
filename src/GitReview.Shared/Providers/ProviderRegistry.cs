@@ -21,7 +21,8 @@ namespace GitReview.Shared.Providers
                         "nvidia/nemotron-3-super:free",
                         "cohere/north-mini-code:free",
                         "deepseek/deepseek-r1:free"
-                    ]),
+                    ],
+                    "https://openrouter.ai/api/v1/chat/completions"),
 
                 [AiProvider.Gemini] = new(
                     AiProvider.Gemini,
@@ -31,7 +32,8 @@ namespace GitReview.Shared.Providers
                         "gemini-2.0-flash",
                         "gemini-1.5-flash",
                         "gemini-1.5-pro"
-                    ]),
+                    ],
+                    "https://generativelanguage.googleapis.com/v1beta"),
 
                 [AiProvider.DeepSeek] = new(
                     AiProvider.DeepSeek,
@@ -40,7 +42,8 @@ namespace GitReview.Shared.Providers
                     [
                         "deepseek-chat",
                         "deepseek-reasoner"
-                    ])
+                    ],
+                    "https://api.deepseek.com/v1/chat/completions")
             };
 
         public static ProviderSpec GetSpec(this AiProvider provider)
@@ -74,5 +77,6 @@ namespace GitReview.Shared.Providers
         public static IReadOnlyList<string> GetAvailableModels(this AiProvider provider) => provider.GetSpec().Models;
         public static string GetModel(this AiProvider provider) => provider.GetSpec().GetModel();
         public static string ToCliValue(this AiProvider provider) => provider.ToString().ToLowerInvariant();
+        public static string GetEndpoint(this AiProvider provider) => provider.GetSpec().Endpoint;
     }
 }
