@@ -3,14 +3,20 @@ using GitReview.Cli.Parsing;
 using GitReview.Core.Git;
 using GitReview.Core.Models;
 using GitReview.Core.Prompt;
+using GitReview.Core.Services;
 using GitReview.Core.Strategies;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
 
-Console.WriteLine("GitReview started\n");
+var appName = Assembly.GetEntryAssembly()?
+    .GetCustomAttribute<AssemblyProductAttribute>()?
+    .Product ?? "GitReview";
+
+Console.WriteLine($"{appName} started\n");
 
 var options = ReviewOptionsParser.Parse(args);
 

@@ -6,9 +6,10 @@
 		<Nullable>enable</Nullable>
 		<PackAsTool>true</PackAsTool>
 		<IsPackable>true</IsPackable>
-		<PackageId>wieseknows.GitReview</PackageId>
+		<AssemblyName>GitReview</AssemblyName>
+		<Product>GitReview</Product>
 		<ToolCommandName>git-review</ToolCommandName>
-		<Authors>wieseknows</Authors>
+		<PackageId>wieseknows.GitReview</PackageId>
 		<Description>CLI tool to convert git diffs into structured LLM prompts.</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
