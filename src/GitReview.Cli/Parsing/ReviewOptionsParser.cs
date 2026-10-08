@@ -1,4 +1,4 @@
-﻿using GitReview.Core.Models;
+using GitReview.Core.Models;
 using GitReview.Shared.Constants;
 using GitReview.Shared.Enums;
 using GitReview.Shared.Providers;
@@ -10,6 +10,8 @@ namespace GitReview.Cli.Parsing
         public static ReviewOptions Parse(string[] args)
         {
             string? rawProviderArg = GetProviderValue(args);
+            string? fromBranch = GetNamedArgValue(args, "-from");
+            string? toBranch = GetNamedArgValue(args, "-to");
 
             ReviewExecutionMode? mode = null;
             AiProvider? selectedProvider = !string.IsNullOrWhiteSpace(rawProviderArg)
@@ -53,7 +55,9 @@ namespace GitReview.Cli.Parsing
 
             return new ReviewOptions(
                 mode ?? ReviewExecutionMode.PromptWithClipboard,
-                selectedProvider.Value);
+                selectedProvider.Value,
+                fromBranch,
+                toBranch);
         }
 
         private static bool Has(string[] a, params string[] keys)
@@ -74,6 +78,23 @@ namespace GitReview.Cli.Parsing
                 if (arg.StartsWith("--provider=", StringComparison.OrdinalIgnoreCase))
                 {
                     return arg.Substring("--provider=".Length);
+                }
+            }
+            return null;
+        }
+
+        static string? GetNamedArgValue(string[] a, string key)
+        {
+            for (int i = 0; i < a.Length; i++)
+            {
+                var arg = a[i];
+                if (arg.Equals(key, StringComparison.OrdinalIgnoreCase) && i + 1 < a.Length)
+                {
+                    return a[i + 1];
+                }
+                if (arg.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase))
+                {
+                    return arg.Substring((key + "=").Length);
                 }
             }
             return null;

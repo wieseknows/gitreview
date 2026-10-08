@@ -1,4 +1,4 @@
-﻿using GitReview.Core.Exceptions;
+using GitReview.Core.Exceptions;
 using GitReview.Core.Git;
 using GitReview.Shared.Enums;
 
@@ -24,9 +24,9 @@ public sealed class ReviewCommand
         }
     }
 
-    public async Task ExecuteAsync(ReviewExecutionMode mode, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(ReviewOptions options, CancellationToken cancellationToken)
     {
-        var diff = _gitService.GetDiff();
+        var diff = _gitService.GetDiff(options.FromBranch, options.ToBranch);
 
         Console.WriteLine($"Changed files: {diff.ChangedFiles}");
         Console.WriteLine($"Changed lines: {diff.ChangedLines}");
@@ -37,9 +37,9 @@ public sealed class ReviewCommand
             return;
         }
 
-        if (!_strategies.TryGetValue(mode, out var strategy))
+        if (!_strategies.TryGetValue(options.Mode, out var strategy))
         {
-            Console.WriteLine($"❌ No strategy found for mode: {mode}");
+            Console.WriteLine($"❌ No strategy found for mode: {options.Mode}");
             return;
         }
 

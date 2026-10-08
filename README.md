@@ -78,6 +78,12 @@ Run directly from any Git repository:
 - `git review` — Generate structured LLM prompt (`review.md`).
 - `git review raw` (or `git review -r`) — Export raw git diff patch (`git_changes.diff`).
 
+### Comparing Specific Branches
+You can generate diffs and reviews between specific branches using `-from` and `-to` parameters:
+- `git review -from develop -to feature/task-1` — Generate a review prompt by comparing `develop` to `feature/task-1`.
+- `git review --ai -from develop -to feature/task-1` — Run AI review comparing two branches.
+- `git review raw -from develop` — Export raw diff between `develop` and the current working tree.
+
 ## Output Files
 
 - `ai_review_result.md` — Detailed code review generated directly by the selected AI model.

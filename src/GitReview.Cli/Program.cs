@@ -1,4 +1,4 @@
-﻿using GitReview.Cli.Composition;
+using GitReview.Cli.Composition;
 using GitReview.Cli.Parsing;
 using GitReview.Core.Git;
 using GitReview.Core.Models;
@@ -41,6 +41,6 @@ Console.CancelKeyPress += (_, e) =>
 };
 
 var command = serviceProvider.GetRequiredService<ReviewCommand>();
-await command.ExecuteAsync(options.Mode, cts.Token);
+await command.ExecuteAsync(options, cts.Token);
 
 Console.WriteLine("\nDone.");

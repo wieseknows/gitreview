@@ -1,4 +1,4 @@
-﻿using GitReview.Core.Models;
+using GitReview.Core.Models;
 using System.Diagnostics;
 using System.Text;
 
@@ -8,18 +8,82 @@ public sealed class GitService : IGitService
 {
     private const int TimeoutMs = 30_000;
 
-    public GitDiffResult GetDiff()
+    public GitDiffResult GetDiff(string? from = null, string? to = null)
     {
         if (!IsGitRepository())
         {
             throw new InvalidOperationException("Current directory is not a Git repository.");
         }
 
+        if (from is null && to is null)
+        {
+            return new GitDiffResult
+            {
+                StagedDiff = ExecuteGit("diff", "--cached"),
+                WorkingTreeDiff = ExecuteGit("diff")
+            };
+        }
+
+        if (from is null)
+        {
+            throw new InvalidOperationException("-to requires -from.");
+        }
+
+        TryFetchOrigin();
+
+        var fromRef = ResolveRef(from, preferRemote: true);
+        var diff = to is null
+            ? ExecuteGit("diff", fromRef)
+            : ExecuteGit("diff", $"{fromRef}...{ResolveRef(to, preferRemote: false)}");
+
         return new GitDiffResult
         {
-            StagedDiff = ExecuteGit("diff", "--cached"),
-            WorkingTreeDiff = ExecuteGit("diff")
+            StagedDiff = "",
+            WorkingTreeDiff = diff
         };
+    }
+
+    private void TryFetchOrigin()
+    {
+        try
+        {
+            ExecuteGit("fetch", "--quiet", "--no-tags", "origin");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"fetch failed, using local refs: {ex.Message}");
+        }
+    }
+
+    private string ResolveRef(string name, bool preferRemote)
+    {
+        var remote = name.StartsWith("origin/") ? name : $"origin/{name}";
+        string[] candidates = preferRemote
+            ? [remote, name]
+            : [name, remote];
+
+        foreach (var c in candidates)
+        {
+            if (RefExists(c))
+            {
+                return c;
+            }
+        }
+
+        throw new InvalidOperationException($"Branch or revision '{name}' not found locally or on origin.");
+    }
+
+    private bool RefExists(string rev)
+    {
+        try
+        {
+            ExecuteGit("rev-parse", "--verify", "--quiet", "--end-of-options", $"{rev}^{{commit}}");
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public string GetRepositoryRoot()
