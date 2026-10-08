@@ -7,10 +7,15 @@
       "environmentVariables": {
         "GIT_REVIEW_PROVIDER": "openrouter",
 
+        "SAMBANOVA_API_KEY": "",
+        "SAMBANOVA_MODEL": "Llama-3.3-70B-Instruct",
+
         "GEMINI_API_KEY": "",
         "GEMINI_MODEL": "gemini-3.6-flash",
+
         "DEEPSEEK_API_KEY": "",
         "DEEPSEEK_MODEL": "deepseek-coder",
+
         "OPENROUTER_API_KEY": "",
         "OPENROUTER_MODEL": "poolside/laguna-s-2.1:free"
         //"OPENROUTER_MODEL": "cohere/north-mini-code:free"

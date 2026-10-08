@@ -11,6 +11,9 @@ namespace GitReview.Shared.Enums
         Gemini = 1,
 
         [Description("DeepSeek")]
-        DeepSeek = 2
+        DeepSeek = 2,
+
+        [Description("SambaNova")]
+        SambaNova = 3,
     }
 }

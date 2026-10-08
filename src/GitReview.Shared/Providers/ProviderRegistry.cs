@@ -43,7 +43,18 @@ namespace GitReview.Shared.Providers
                         "deepseek-chat",
                         "deepseek-reasoner"
                     ],
-                    "https://api.deepseek.com/v1/chat/completions")
+                    "https://api.deepseek.com/v1/chat/completions"),
+
+                [AiProvider.SambaNova] = new(
+                    AiProvider.SambaNova,
+                    "SAMBANOVA_API_KEY",
+                    "SAMBANOVA_MODEL",
+                    [
+                        "DeepSeek-R1",
+                        "Llama-3.3-70B-Instruct",
+                        "DeepSeek-V3"
+                    ],
+                    "https://sambanova.ai")
             };
 
         public static ProviderSpec GetSpec(this AiProvider provider)
@@ -68,6 +79,7 @@ namespace GitReview.Shared.Providers
                 "gemini" or "google" => AiProvider.Gemini,
                 "deepseek" or "ds" => AiProvider.DeepSeek,
                 "openrouter" or "or" => AiProvider.OpenRouter,
+                "sambanova" or "samba" or "sn" => AiProvider.SambaNova,
                 _ => fallback
             };
         }

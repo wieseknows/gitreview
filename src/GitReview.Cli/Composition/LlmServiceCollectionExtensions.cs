@@ -2,6 +2,7 @@
 using GitReview.Core.Services.DeepSeek;
 using GitReview.Core.Services.Gemini;
 using GitReview.Core.Services.OpenRouter;
+using GitReview.Core.Services.SambaNova;
 using GitReview.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,39 +14,20 @@ internal static class LlmServiceCollectionExtensions
 
     public static IServiceCollection AddLlmReviewService(this IServiceCollection services, AiProvider provider)
     {
-        return provider switch
-        {
-            AiProvider.Gemini => services.AddGemini(),
-            AiProvider.DeepSeek => services.AddDeepSeek(),
-            AiProvider.OpenRouter => services.AddOpenRouter(),
-            _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, $"Unsupported LLM provider: {provider}")
-        };
-    }
+        services
+            .AddHttpClient<ILlmReviewService>(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
+            })
+            .AddTypedClient<ILlmReviewService>((httpClient, sp) => provider switch
+            {
+                AiProvider.Gemini => new GeminiService(httpClient),
+                AiProvider.DeepSeek => new DeepSeekService(httpClient),
+                AiProvider.OpenRouter => new OpenRouterService(httpClient),
+                AiProvider.SambaNova => new SambaNovaService(httpClient),
+                _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, $"Unsupported LLM provider: {provider}")
+            });
 
-    private static IServiceCollection AddGemini(this IServiceCollection services)
-    {
-        services.AddHttpClient<ILlmReviewService, GeminiService>(client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
-        });
-        return services;
-    }
-
-    private static IServiceCollection AddDeepSeek(this IServiceCollection services)
-    {
-        services.AddHttpClient<ILlmReviewService, DeepSeekService>(client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
-        });
-        return services;
-    }
-
-    private static IServiceCollection AddOpenRouter(this IServiceCollection services)
-    {
-        services.AddHttpClient<ILlmReviewService, OpenRouterService>(client =>
-        {
-            client.Timeout = TimeSpan.FromMinutes(LlmTimeoutInMinutes);
-        });
         return services;
     }
 }
